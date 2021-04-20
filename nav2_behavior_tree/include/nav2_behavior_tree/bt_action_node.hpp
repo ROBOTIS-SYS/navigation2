@@ -233,7 +233,7 @@ protected:
     if (rclcpp::spin_until_future_complete(node_, future_goal_handle, server_timeout_) !=
       rclcpp::FutureReturnCode::SUCCESS)
     {
-      throw std::runtime_error("send_goal failed");
+      throw std::runtime_error(action_name_ + " : send_goal failed");
     }
 
     goal_handle_ = future_goal_handle.get();
