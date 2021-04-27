@@ -130,37 +130,43 @@ public:
   // The main override required by a BT action
   BT::NodeStatus tick() override
   {
-    // first step to be done only at the beginning of the Action
-    if (status() == BT::NodeStatus::IDLE) {
-      // setting the status to RUNNING to notify the BT Loggers (if any)
-      setStatus(BT::NodeStatus::RUNNING);
+    try {
+// first step to be done only at the beginning of the Action
+      if (status() == BT::NodeStatus::IDLE) {
+        // setting the status to RUNNING to notify the BT Loggers (if any)
+        setStatus(BT::NodeStatus::RUNNING);
 
-      // user defined callback
-      on_tick();
+        // user defined callback
+        on_tick();
 
-      on_new_goal_received();
-    }
-
-    // The following code corresponds to the "RUNNING" loop
-    if (rclcpp::ok() && !goal_result_available_) {
-      // user defined callback. May modify the value of "goal_updated_"
-      on_wait_for_result();
-
-      auto goal_status = goal_handle_->get_status();
-      if (goal_updated_ && (goal_status == action_msgs::msg::GoalStatus::STATUS_EXECUTING ||
-        goal_status == action_msgs::msg::GoalStatus::STATUS_ACCEPTED))
-      {
-        goal_updated_ = false;
         on_new_goal_received();
       }
 
-      rclcpp::spin_some(node_);
+      // The following code corresponds to the "RUNNING" loop
+      if (rclcpp::ok() && !goal_result_available_) {
+        // user defined callback. May modify the value of "goal_updated_"
+        on_wait_for_result();
 
-      // check if, after invoking spin_some(), we finally received the result
-      if (!goal_result_available_) {
-        // Yield this Action, returning RUNNING
-        return BT::NodeStatus::RUNNING;
+        auto goal_status = goal_handle_->get_status();
+        if (goal_updated_ && (goal_status == action_msgs::msg::GoalStatus::STATUS_EXECUTING ||
+          goal_status == action_msgs::msg::GoalStatus::STATUS_ACCEPTED))
+        {
+          goal_updated_ = false;
+          on_new_goal_received();
+        }
+
+        rclcpp::spin_some(node_);
+
+        // check if, after invoking spin_some(), we finally received the result
+        if (!goal_result_available_) {
+          // Yield this Action, returning RUNNING
+          return BT::NodeStatus::RUNNING;
+        }
       }
+
+    } catch (std::exception & ex) {
+      RCLCPP_ERROR(node_->get_logger(), ex.what());
+      return BT::NodeStatus::FAILURE;
     }
 
     switch (result_.code) {
