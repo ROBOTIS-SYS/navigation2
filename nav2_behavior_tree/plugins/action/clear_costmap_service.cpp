@@ -29,6 +29,7 @@ ClearEntireCostmapService::ClearEntireCostmapService(
 
 void ClearEntireCostmapService::on_tick()
 {
+  std::cout << "[" << name() << "] On Tick : " << status() << std::endl;
   increment_recovery_count();
 }
 
