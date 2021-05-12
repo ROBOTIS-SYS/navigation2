@@ -66,6 +66,11 @@ public:
     const geometry_msgs::msg::Twist & velocity) override;
 
 protected:
+  void on_parameter_event_callback(const rcl_interfaces::msg::ParameterEvent::SharedPtr event);
+  rclcpp::AsyncParametersClient::SharedPtr parameters_client_;
+  rclcpp::Subscription<rcl_interfaces::msg::ParameterEvent>::SharedPtr parameter_event_sub_;
+
+  std::string plugin_name_;
   double xy_goal_tolerance_, yaw_goal_tolerance_;
   bool stateful_, check_xy_;
   // Cached squared xy_goal_tolerance_

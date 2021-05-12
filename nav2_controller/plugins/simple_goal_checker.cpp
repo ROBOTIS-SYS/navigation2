@@ -69,11 +69,47 @@ void SimpleGoalChecker::initialize(
     nh,
     plugin_name + ".stateful", rclcpp::ParameterValue(true));
 
+  plugin_name_ = plugin_name;
+
   nh->get_parameter(plugin_name + ".xy_goal_tolerance", xy_goal_tolerance_);
   nh->get_parameter(plugin_name + ".yaw_goal_tolerance", yaw_goal_tolerance_);
   nh->get_parameter(plugin_name + ".stateful", stateful_);
 
   xy_goal_tolerance_sq_ = xy_goal_tolerance_ * xy_goal_tolerance_;
+
+  parameters_client_ = std::make_shared<rclcpp::AsyncParametersClient>(
+    nh->get_node_base_interface(),
+    nh->get_node_topics_interface(),
+    nh->get_node_graph_interface(),
+    nh->get_node_services_interface());
+
+  parameter_event_sub_ = parameters_client_->on_parameter_event(
+    std::bind(&SimpleGoalChecker::on_parameter_event_callback, this, std::placeholders::_1));
+}
+
+void SimpleGoalChecker::on_parameter_event_callback(
+  const rcl_interfaces::msg::ParameterEvent::SharedPtr event)
+{
+  for (auto & changed_parameter : event->changed_parameters) {
+    const auto & type = changed_parameter.value.type;
+    const auto & name = changed_parameter.name;
+    const auto & value = changed_parameter.value;
+
+    if (name == plugin_name_ + ".xy_goal_tolerance" &&
+      type == rclcpp::ParameterType::PARAMETER_DOUBLE)
+    {
+      xy_goal_tolerance_ = value.double_value;
+      xy_goal_tolerance_sq_ = xy_goal_tolerance_ * xy_goal_tolerance_;
+    } else if (name == plugin_name_ + ".yaw_goal_tolerance" &&
+      type == rclcpp::ParameterType::PARAMETER_DOUBLE)
+    {
+      yaw_goal_tolerance_ = value.double_value;
+    } else if (name == plugin_name_ + ".stateful" &&
+      type == rclcpp::ParameterType::PARAMETER_BOOL)
+    {
+      stateful_ = value.bool_value;
+    }
+  }
 }
 
 void SimpleGoalChecker::reset()
