@@ -745,6 +745,7 @@ bool AmclNode::addNewScanner(
   const std::string & laser_scan_frame_id,
   geometry_msgs::msg::PoseStamped & laser_pose)
 {
+  // check whether the object was created
   auto laser_model = createLaserObject();
   if (laser_model != nullptr) {
     lasers_.push_back(laser_model);
@@ -1036,6 +1037,7 @@ AmclNode::sendMapToOdomTransform(const tf2::TimePoint & transform_expiration)
 nav2_amcl::Laser *
 AmclNode::createLaserObject()
 {
+  // if the map is empty, returns nullptr
   if (map_ == NULL) {
     RCLCPP_ERROR(get_logger(), "cost map is free.");
     return nullptr;
