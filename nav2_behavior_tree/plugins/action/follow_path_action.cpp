@@ -31,6 +31,7 @@ FollowPathAction::FollowPathAction(
 
 void FollowPathAction::on_tick()
 {
+  std::cout << "[" << name() << "] On Tick : " << status() << std::endl;
   getInput("path", goal_.path);
   getInput("controller_id", goal_.controller_id);
 }
