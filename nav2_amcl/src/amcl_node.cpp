@@ -746,7 +746,7 @@ bool AmclNode::addNewScanner(
   geometry_msgs::msg::PoseStamped & laser_pose)
 {
   auto laser_model = createLaserObject();
-  if (!laser_model) {
+  if (laser_model != nullptr) {
     lasers_.push_back(laser_model);
     //  lasers_.push_back(createLaserObject());
     lasers_update_.push_back(true);
