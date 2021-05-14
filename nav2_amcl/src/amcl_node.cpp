@@ -745,9 +745,13 @@ bool AmclNode::addNewScanner(
   const std::string & laser_scan_frame_id,
   geometry_msgs::msg::PoseStamped & laser_pose)
 {
-  lasers_.push_back(createLaserObject());
-  lasers_update_.push_back(true);
-  laser_index = frame_to_laser_.size();
+  auto laser_model = createLaserObject();
+  if (!laser_model) {
+    lasers_.push_back(laser_model);
+    //  lasers_.push_back(createLaserObject());
+    lasers_update_.push_back(true);
+    laser_index = frame_to_laser_.size();
+  }
 
   geometry_msgs::msg::PoseStamped ident;
   ident.header.frame_id = laser_scan_frame_id;
@@ -1032,6 +1036,11 @@ AmclNode::sendMapToOdomTransform(const tf2::TimePoint & transform_expiration)
 nav2_amcl::Laser *
 AmclNode::createLaserObject()
 {
+  if (map_ == NULL) {
+    RCLCPP_ERROR(get_logger(), "cost map is free.");
+    return nullptr;
+  }
+
   RCLCPP_INFO(get_logger(), "createLaserObject");
 
   if (sensor_model_type_ == "beam") {
