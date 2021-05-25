@@ -81,7 +81,7 @@ void RangeSensorLayer::onInitialize()
   node_->get_parameter(name_ + "." + "mark_threshold", mark_threshold_);
   declareParameter("clear_on_max_reading", rclcpp::ParameterValue(false));
   node_->get_parameter(name_ + "." + "clear_on_max_reading", clear_on_max_reading_);
-  declareParameter("check_range", rclcpp::ParameterValue(0.0));
+  declareParameter("max_check_range", rclcpp::ParameterValue(0.0));
   node_->get_parameter(name_ + "." + "max_check_range", check_range_);
 
   double temp_tf_tol = 0.0;
