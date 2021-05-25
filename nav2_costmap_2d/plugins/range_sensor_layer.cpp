@@ -81,6 +81,8 @@ void RangeSensorLayer::onInitialize()
   node_->get_parameter(name_ + "." + "mark_threshold", mark_threshold_);
   declareParameter("clear_on_max_reading", rclcpp::ParameterValue(false));
   node_->get_parameter(name_ + "." + "clear_on_max_reading", clear_on_max_reading_);
+  declareParameter("check_range", rclcpp::ParameterValue(0.0));
+  node_->get_parameter(name_ + "." + "max_check_range", check_range_);
 
   double temp_tf_tol = 0.0;
   node_->get_parameter("transform_tolerance", temp_tf_tol);
@@ -271,6 +273,10 @@ void RangeSensorLayer::processVariableRangeMsg(sensor_msgs::msg::Range & range_m
 
   if (range_message.range >= range_message.max_range && clear_on_max_reading_) {
     clear_sensor_cone = true;
+  }
+
+  if (clear_sensor_cone == false && check_range_ != 0.0 && range_message.range > check_range_) {
+    return;
   }
 
   updateCostmap(range_message, clear_sensor_cone);

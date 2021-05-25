@@ -111,6 +111,7 @@ private:
   std::list<sensor_msgs::msg::Range> range_msgs_buffer_;
 
   double max_angle_, phi_v_;
+  double check_range_;
   double inflate_cone_;
   std::string global_frame_;
 
