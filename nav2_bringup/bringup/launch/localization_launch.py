@@ -94,7 +94,8 @@ def generate_launch_description():
             name='amcl',
             output='screen',
             parameters=[configured_params],
-            remappings=remappings),
+            remappings=remappings),            
+            # prefix=['xterm -e gdb -ex run --args']),
 
         Node(
             package='nav2_lifecycle_manager',
