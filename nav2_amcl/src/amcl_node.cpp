@@ -752,6 +752,8 @@ bool AmclNode::addNewScanner(
     //  lasers_.push_back(createLaserObject());
     lasers_update_.push_back(true);
     laser_index = frame_to_laser_.size();
+  } else {
+    return false;
   }
 
   geometry_msgs::msg::PoseStamped ident;
