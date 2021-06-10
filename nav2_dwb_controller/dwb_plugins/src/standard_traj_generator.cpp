@@ -91,6 +91,15 @@ void StandardTrajectoryGenerator::initialize(
   nh->get_parameter(plugin_name + ".linear_granularity", linear_granularity_);
   nh->get_parameter(plugin_name + ".angular_granularity", angular_granularity_);
   nh->get_parameter(plugin_name + ".include_last_point", include_last_point_);
+
+  // Setup callback for changes to parameters.
+  parameters_client_ = std::make_shared<rclcpp::AsyncParametersClient>(
+    nh->get_node_base_interface(), nh->get_node_topics_interface(), nh->get_node_graph_interface(),
+    nh->get_node_services_interface());
+
+  using std::placeholders::_1;
+  parameter_event_sub_ = parameters_client_->on_parameter_event(
+    std::bind(&StandardTrajectoryGenerator::on_parameter_event_callback, this, _1));
 }
 
 void StandardTrajectoryGenerator::initializeIterator(
@@ -211,6 +220,36 @@ geometry_msgs::msg::Pose2D StandardTrajectoryGenerator::computeNewPosition(
     (vel.x * sin(start_pose.theta) + vel.y * sin(M_PI_2 + start_pose.theta)) * dt;
   new_pose.theta = start_pose.theta + vel.theta * dt;
   return new_pose;
+}
+
+void StandardTrajectoryGenerator::on_parameter_event_callback(
+  const rcl_interfaces::msg::ParameterEvent::SharedPtr event)
+{
+  using rcl_interfaces::msg::ParameterType;
+
+  for (auto & changed_parameter : event->changed_parameters) {
+    const auto & type = changed_parameter.value.type;
+    const auto & name = changed_parameter.name;
+    const auto & value = changed_parameter.value;
+
+    if (type == ParameterType::PARAMETER_DOUBLE) {
+      if (name == plugin_name_ + ".sim_time") {
+        sim_time_ = value.double_value;
+      } else if (name == plugin_name_ + ".time_granularity") {
+        time_granularity_ = value.double_value;
+      } else if (name == plugin_name_ + ".linear_granularity") {
+        linear_granularity_ = value.double_value;
+      } else if (name == plugin_name_ + ".angular_granularity") {
+        angular_granularity_ = value.double_value;
+      }
+    } else if (type == ParameterType::PARAMETER_BOOL) {
+      if (name == plugin_name_ + ".discretize_by_time") {
+        discretize_by_time_ = value.bool_value;
+      } else if (name == plugin_name_ + ".include_last_point") {
+        include_last_point_ = value.bool_value;
+      }
+    }
+  }
 }
 
 }  // namespace dwb_plugins

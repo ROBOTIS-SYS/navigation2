@@ -113,6 +113,11 @@ protected:
    */
   virtual std::vector<double> getTimeSteps(const nav_2d_msgs::msg::Twist2D & cmd_vel);
 
+  // Subscription for parameter change
+  void on_parameter_event_callback(const rcl_interfaces::msg::ParameterEvent::SharedPtr event);
+  rclcpp::AsyncParametersClient::SharedPtr parameters_client_;
+  rclcpp::Subscription<rcl_interfaces::msg::ParameterEvent>::SharedPtr parameter_event_sub_;
+
   KinematicsHandler::Ptr kinematics_handler_;
   std::shared_ptr<VelocityIterator> velocity_iterator_;
 
