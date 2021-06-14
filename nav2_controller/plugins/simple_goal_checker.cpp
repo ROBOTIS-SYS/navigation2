@@ -127,7 +127,8 @@ bool SimpleGoalChecker::isGoalReached(
 
     if (dx * dx + dy * dy < 2 * xy_goal_tolerance_sq_) {
       std::cout << "Check Goal Reached [XY] : delta_x = " << dx << ", delta_y = " << dy <<
-        " | vel_x = " << velocity.linear.x << std::endl;
+        " | linear_vel_x = " << velocity.linear.x << ", angular_vel = " << velocity.angular.z <<
+        std::endl;
     }
     if (dx * dx + dy * dy > xy_goal_tolerance_sq_) {
       return false;
@@ -144,7 +145,8 @@ bool SimpleGoalChecker::isGoalReached(
 
   if (fabs(dyaw) < 2 * yaw_goal_tolerance_) {
     std::cout << "Check Goal Reached [YAW] : delta_yaw = " << dyaw <<
-      " | vel_theta = " << velocity.angular.z << std::endl;
+      " | linear_vel_x = " << velocity.linear.x << ", angular_vel = " << velocity.angular.z <<
+      std::endl;
   }
   return fabs(dyaw) < yaw_goal_tolerance_;
 }
