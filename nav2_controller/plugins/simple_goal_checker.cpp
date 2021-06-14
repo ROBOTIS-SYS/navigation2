@@ -119,13 +119,16 @@ void SimpleGoalChecker::reset()
 
 bool SimpleGoalChecker::isGoalReached(
   const geometry_msgs::msg::Pose & query_pose, const geometry_msgs::msg::Pose & goal_pose,
-  const geometry_msgs::msg::Twist &)
+  const geometry_msgs::msg::Twist & velocity)
 {
   if (check_xy_) {
     double dx = query_pose.position.x - goal_pose.position.x,
       dy = query_pose.position.y - goal_pose.position.y;
 
-    std::cout << "Check Goal Reached [XY] : delta_x = " << dx << ", delta_y = " << dy << std::endl;
+    if (dx * dx + dy * dy < 2 * xy_goal_tolerance_sq_) {
+      std::cout << "Check Goal Reached [XY] : delta_x = " << dx << ", delta_y = " << dy <<
+        " | vel_x = " << velocity.linear.x << std::endl;
+    }
     if (dx * dx + dy * dy > xy_goal_tolerance_sq_) {
       return false;
     }
@@ -138,7 +141,11 @@ bool SimpleGoalChecker::isGoalReached(
   double dyaw = angles::shortest_angular_distance(
     tf2::getYaw(query_pose.orientation),
     tf2::getYaw(goal_pose.orientation));
-  std::cout << "Check Goal Reached [YAW] : delta_yaw = " << dyaw << std::endl;
+
+  if (fabs(dyaw) < 2 * yaw_goal_tolerance_) {
+    std::cout << "Check Goal Reached [YAW] : delta_yaw = " << dyaw <<
+      " | vel_theta = " << velocity.angular.z << std::endl;
+  }
   return fabs(dyaw) < yaw_goal_tolerance_;
 }
 
