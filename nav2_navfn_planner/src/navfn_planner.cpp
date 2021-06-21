@@ -218,7 +218,6 @@ NavfnPlanner::makePlan(
     costmap_->getSizeInCellsX(),
     costmap_->getSizeInCellsY());
 
-  unsigned char def = costmap_->getDefaultValue();
   planner_->setCostmap(costmap_->getCharMap(), true, allow_unknown_);
 
   lock.unlock();
