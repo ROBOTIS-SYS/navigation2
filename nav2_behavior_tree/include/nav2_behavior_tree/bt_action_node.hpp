@@ -171,12 +171,15 @@ public:
 
     switch (result_.code) {
       case rclcpp_action::ResultCode::SUCCEEDED:
+        RCLCPP_INFO_STREAM(node_->get_logger(), name() << " : SUCCEEDED");
         return on_success();
 
       case rclcpp_action::ResultCode::ABORTED:
+        RCLCPP_WARN_STREAM(node_->get_logger(), name() << " : ABORTED");
         return on_aborted();
 
       case rclcpp_action::ResultCode::CANCELED:
+        RCLCPP_WARN_STREAM(node_->get_logger(), name() << " : CANCELED");
         return on_cancelled();
 
       default:
