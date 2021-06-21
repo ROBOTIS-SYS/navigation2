@@ -204,9 +204,16 @@ NavfnPlanner::makePlan(
   // clear the starting cell within the costmap because we know it can't be an obstacle
   clearRobotCell(mx, my);
 
+  bool is_updated = costmap_ros_->isUpdated();
+
+  if (is_updated == false) {
+    RCLCPP_WARN(node_->get_logger(), "Costmap is not updated!, Wait 0.5 sec");
+    rclcpp::sleep_for(std::chrono::milliseconds(500));
+  }
+
   std::unique_lock<nav2_costmap_2d::Costmap2D::mutex_t> lock(*(costmap_->getMutex()));
 
-  bool is_updated = costmap_ros_->isUpdated();
+  is_updated = costmap_ros_->isUpdated();
 
   if (is_updated == false) {
     RCLCPP_WARN(node_->get_logger(), "Costmap is not updated!");
