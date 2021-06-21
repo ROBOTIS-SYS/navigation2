@@ -450,6 +450,7 @@ Costmap2DROS::updateMap()
       RCLCPP_DEBUG(get_logger(), "Publishing footprint");
       footprint_pub_->publish(std::move(footprint));
       initialized_ = true;
+      is_updated_ = true;
     }
   }
 }
@@ -528,6 +529,8 @@ Costmap2DROS::resetLayers()
   {
     (*plugin)->reset();
   }
+
+  is_updated_ = false;
 }
 
 bool

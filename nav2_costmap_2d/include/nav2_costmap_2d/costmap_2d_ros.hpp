@@ -256,6 +256,8 @@ public:
    */
   bool getUseRadius() {return use_radius_;}
 
+  bool isUpdated() {return is_updated_;}
+
 protected:
   rclcpp::Node::SharedPtr client_node_;
 
@@ -306,6 +308,7 @@ protected:
   bool rolling_window_{false};     ///< Whether to use a rolling window version of the costmap
   bool track_unknown_space_{false};
   double transform_tolerance_{0};  ///< The timeout before transform errors
+  bool is_updated_{false};
 
   // Derived parameters
   bool use_radius_{false};

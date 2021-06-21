@@ -68,6 +68,7 @@ NavfnPlanner::configure(
   tf_ = tf;
   name_ = name;
   costmap_ = costmap_ros->getCostmap();
+  costmap_ros_ = costmap_ros;
   global_frame_ = costmap_ros->getGlobalFrameID();
 
   RCLCPP_INFO(
@@ -205,11 +206,19 @@ NavfnPlanner::makePlan(
 
   std::unique_lock<nav2_costmap_2d::Costmap2D::mutex_t> lock(*(costmap_->getMutex()));
 
+  bool is_updated = costmap_ros_->isUpdated();
+
+  if (is_updated == false) {
+    RCLCPP_WARN(node_->get_logger(), "Costmap is not updated!");
+    return false;
+  }
+
   // make sure to resize the underlying array that Navfn uses
   planner_->setNavArr(
     costmap_->getSizeInCellsX(),
     costmap_->getSizeInCellsY());
 
+  unsigned char def = costmap_->getDefaultValue();
   planner_->setCostmap(costmap_->getCharMap(), true, allow_unknown_);
 
   lock.unlock();
