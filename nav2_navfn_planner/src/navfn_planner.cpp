@@ -207,8 +207,8 @@ NavfnPlanner::makePlan(
   bool is_updated = costmap_ros_->isUpdated();
 
   if (is_updated == false) {
-    RCLCPP_WARN(node_->get_logger(), "Costmap is not updated!, Wait 0.5 sec");
-    rclcpp::sleep_for(std::chrono::milliseconds(500));
+    RCLCPP_WARN(node_->get_logger(), "Costmap is not updated!, Wait 1.0 sec");
+    rclcpp::sleep_for(std::chrono::milliseconds(1000));
   }
 
   std::unique_lock<nav2_costmap_2d::Costmap2D::mutex_t> lock(*(costmap_->getMutex()));

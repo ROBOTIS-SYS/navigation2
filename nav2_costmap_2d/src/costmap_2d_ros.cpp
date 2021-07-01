@@ -441,6 +441,7 @@ Costmap2DROS::updateMap()
       const double & y = pose.pose.position.y;
       const double yaw = tf2::getYaw(pose.pose.orientation);
       layered_costmap_->updateMap(x, y, yaw);
+      is_updated_ = true;
 
       auto footprint = std::make_unique<geometry_msgs::msg::PolygonStamped>();
       footprint->header.frame_id = global_frame_;
@@ -450,7 +451,6 @@ Costmap2DROS::updateMap()
       RCLCPP_DEBUG(get_logger(), "Publishing footprint");
       footprint_pub_->publish(std::move(footprint));
       initialized_ = true;
-      is_updated_ = true;
     }
   }
 }
