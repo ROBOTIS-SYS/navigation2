@@ -204,21 +204,37 @@ NavfnPlanner::makePlan(
   // clear the starting cell within the costmap because we know it can't be an obstacle
   clearRobotCell(mx, my);
 
-  bool is_updated = costmap_ros_->isUpdated();
+  bool is_updated;
+  //= costmap_ros_->isUpdated();
 
-  if (is_updated == false) {
-    RCLCPP_WARN(node_->get_logger(), "Costmap is not updated!, Wait 1.0 sec");
-    rclcpp::sleep_for(std::chrono::milliseconds(1000));
+  //  if (is_updated == false) {
+  //    RCLCPP_WARN(node_->get_logger(), "Costmap is not updated!, Wait 1.0 sec");
+  //    rclcpp::sleep_for(std::chrono::milliseconds(1000));
+  //  }
+
+  for (int ix = 0; ix < 10; ix++) {
+    is_updated = costmap_ros_->isUpdated();
+    if (is_updated) {
+      break;
+    }
+
+    RCLCPP_WARN(node_->get_logger(), "Costmap is not updated!, Wait 0.1 sec");
+    rclcpp::sleep_for(std::chrono::milliseconds(100));
   }
-
-  std::unique_lock<nav2_costmap_2d::Costmap2D::mutex_t> lock(*(costmap_->getMutex()));
-
-  is_updated = costmap_ros_->isUpdated();
 
   if (is_updated == false) {
     RCLCPP_WARN(node_->get_logger(), "Costmap is not updated!");
     return false;
   }
+
+  std::unique_lock<nav2_costmap_2d::Costmap2D::mutex_t> lock(*(costmap_->getMutex()));
+
+//  is_updated = costmap_ros_->isUpdated();
+
+//  if (is_updated == false) {
+//    RCLCPP_WARN(node_->get_logger(), "Costmap is not updated!");
+//    return false;
+//  }
 
   // make sure to resize the underlying array that Navfn uses
   planner_->setNavArr(
