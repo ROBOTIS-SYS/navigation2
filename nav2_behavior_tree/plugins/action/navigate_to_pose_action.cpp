@@ -30,6 +30,8 @@ NavigateToPoseAction::NavigateToPoseAction(
 
 void NavigateToPoseAction::on_tick()
 {
+  RCLCPP_INFO_STREAM(node_->get_logger(), "[" << name() << "] On Tick : " << status());
+
   // Use the position and orientation fields from the XML attributes to initialize the goal
   geometry_msgs::msg::Point position;
   geometry_msgs::msg::Quaternion orientation;

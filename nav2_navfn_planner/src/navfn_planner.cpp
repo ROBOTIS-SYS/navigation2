@@ -204,7 +204,7 @@ NavfnPlanner::makePlan(
   // clear the starting cell within the costmap because we know it can't be an obstacle
   clearRobotCell(mx, my);
 
-  bool is_updated;
+  bool is_updated = false;
   //= costmap_ros_->isUpdated();
 
   //  if (is_updated == false) {

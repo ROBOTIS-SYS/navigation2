@@ -30,7 +30,7 @@ ComputePathToPoseAction::ComputePathToPoseAction(
 
 void ComputePathToPoseAction::on_tick()
 {
-  std::cout << "[" << name() << "] On Tick : " << status() << std::endl;
+  RCLCPP_INFO_STREAM(node_->get_logger(), "[" << name() << "] On Tick : " << status());
   getInput("goal", goal_.pose);
   getInput("planner_id", goal_.planner_id);
 }
