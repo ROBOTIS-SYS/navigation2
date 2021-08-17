@@ -37,6 +37,7 @@ void ComputePathToPoseAction::on_tick()
 
 BT::NodeStatus ComputePathToPoseAction::on_success()
 {
+  RCLCPP_INFO_STREAM(node_->get_logger(), "[" << name() << "] On Success : " << status());
   setOutput("path", result_.result->path);
 
   if (first_time_) {

@@ -160,12 +160,15 @@ public:
         // check if, after invoking spin_some(), we finally received the result
         if (!goal_result_available_) {
           // Yield this Action, returning RUNNING
+          RCLCPP_INFO_STREAM(
+            node_->get_logger(),
+            "[" << name() << "] Check action result : " << status());
           return BT::NodeStatus::RUNNING;
         }
       }
 
     } catch (std::exception & ex) {
-      RCLCPP_ERROR(node_->get_logger(), ex.what());
+      RCLCPP_ERROR_STREAM(node_->get_logger(), "[" << name() << "] Exception : " << ex.what());
       return BT::NodeStatus::FAILURE;
     }
 
@@ -224,6 +227,9 @@ protected:
 
   void on_new_goal_received()
   {
+    RCLCPP_INFO_STREAM(
+      node_->get_logger(),
+      "[" << name() << "] on new goal received() : " << status());
     goal_result_available_ = false;
     auto send_goal_options = typename rclcpp_action::Client<ActionT>::SendGoalOptions();
     send_goal_options.result_callback =
