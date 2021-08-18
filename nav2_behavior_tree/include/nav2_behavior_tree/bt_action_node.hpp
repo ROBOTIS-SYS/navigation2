@@ -169,6 +169,10 @@ public:
       return BT::NodeStatus::FAILURE;
     }
 
+    RCLCPP_INFO_STREAM(
+      node_->get_logger(),
+      "[" << name() << "] Check action result : " << status());
+
     switch (result_.code) {
       case rclcpp_action::ResultCode::SUCCEEDED:
         RCLCPP_INFO_STREAM(node_->get_logger(), name() << " : SUCCEEDED");
@@ -234,6 +238,12 @@ protected:
         // TODO(#1652): a work around until rcl_action interface is updated
         // if goal ids are not matched, the older goal call this callback so ignore the result
         // if matched, it must be processed (including aborted)
+
+        RCLCPP_INFO_STREAM(
+          node_->get_logger(),
+          "[" << name() << "] on new goal received(result) goal_id :" << result.goal_id << ", return_goal_id : " <<
+            this->goal_handle_->get_goal_id());
+
         if (this->goal_handle_->get_goal_id() == result.goal_id) {
           goal_result_available_ = true;
           result_ = result;
