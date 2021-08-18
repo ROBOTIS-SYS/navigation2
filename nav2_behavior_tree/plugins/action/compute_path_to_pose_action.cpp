@@ -21,8 +21,7 @@ namespace nav2_behavior_tree
 {
 
 ComputePathToPoseAction::ComputePathToPoseAction(
-  const std::string & xml_tag_name,
-  const std::string & action_name,
+  const std::string & xml_tag_name, const std::string & action_name,
   const BT::NodeConfiguration & conf)
 : BtActionNode<nav2_msgs::action::ComputePathToPose>(xml_tag_name, action_name, conf)
 {
@@ -30,14 +29,19 @@ ComputePathToPoseAction::ComputePathToPoseAction(
 
 void ComputePathToPoseAction::on_tick()
 {
-  RCLCPP_INFO_STREAM(node_->get_logger(), "[" << name() << "] On Tick : " << status());
+  RCLCPP_INFO_STREAM(
+    node_->get_logger(),
+    "[" << name() << "] On Tick - goal : " << goal_.pose.pose.position.x << ", " <<
+      goal_.pose.pose.position.y);
   getInput("goal", goal_.pose);
   getInput("planner_id", goal_.planner_id);
 }
 
 BT::NodeStatus ComputePathToPoseAction::on_success()
 {
-  RCLCPP_INFO_STREAM(node_->get_logger(), "[" << name() << "] On Success : " << status());
+  RCLCPP_INFO_STREAM(
+    node_->get_logger(),
+    "[" << name() << "] On Success - path : " << result_.result->path.poses.size());
   setOutput("path", result_.result->path);
 
   if (first_time_) {
@@ -53,9 +57,7 @@ BT::NodeStatus ComputePathToPoseAction::on_success()
 #include "behaviortree_cpp_v3/bt_factory.h"
 BT_REGISTER_NODES(factory)
 {
-  BT::NodeBuilder builder =
-    [](const std::string & name, const BT::NodeConfiguration & config)
-    {
+  BT::NodeBuilder builder = [](const std::string & name, const BT::NodeConfiguration & config) {
       return std::make_unique<nav2_behavior_tree::ComputePathToPoseAction>(
         name, "compute_path_to_pose", config);
     };

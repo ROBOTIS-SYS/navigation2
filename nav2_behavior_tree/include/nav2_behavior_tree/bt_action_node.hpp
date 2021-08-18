@@ -130,13 +130,13 @@ public:
   // The main override required by a BT action
   BT::NodeStatus tick() override
   {
-    RCLCPP_INFO_STREAM(
-      node_->get_logger(),
-      "[" << name() << "] TICK, timeout : " << server_timeout_.count() << "ms");
-
     try {
 // first step to be done only at the beginning of the Action
       if (status() == BT::NodeStatus::IDLE) {
+        RCLCPP_INFO_STREAM(
+          node_->get_logger(),
+          "[" << name() << "] TICK, timeout : " << server_timeout_.count() << "ms");
+
         // setting the status to RUNNING to notify the BT Loggers (if any)
         setStatus(BT::NodeStatus::RUNNING);
 
@@ -246,7 +246,7 @@ protected:
   {
     RCLCPP_INFO_STREAM(
       node_->get_logger(),
-      "[" << name() << "] on new goal received() : " << status());
+      "[" << name() << "] On new goal received() : " << status());
     goal_result_available_ = false;
     auto send_goal_options = typename rclcpp_action::Client<ActionT>::SendGoalOptions();
     send_goal_options.result_callback =
@@ -255,7 +255,7 @@ protected:
         // if goal ids are not matched, the older goal call this callback so ignore the result
         // if matched, it must be processed (including aborted)
 
-        RCLCPP_INFO_STREAM(node_->get_logger(), "[" << name() << "] on new goal received(result)");
+        RCLCPP_INFO_STREAM(node_->get_logger(), "[" << name() << "] On new goal received(result)");
 
         if (this->goal_handle_->get_goal_id() == result.goal_id) {
           goal_result_available_ = true;
