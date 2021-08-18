@@ -130,6 +130,10 @@ public:
   // The main override required by a BT action
   BT::NodeStatus tick() override
   {
+    RCLCPP_INFO_STREAM(
+      node_->get_logger(),
+      "[" << name() << "] TICK, timeout : " << server_timeout_);
+
     try {
 // first step to be done only at the beginning of the Action
       if (status() == BT::NodeStatus::IDLE) {
@@ -141,6 +145,9 @@ public:
 
         on_new_goal_received();
       }
+
+      auto start_time = node_->get_clock()->now();
+      rclcpp::Duration timeout_dur(server_timeout_ * 2);
 
       // The following code corresponds to the "RUNNING" loop
       if (rclcpp::ok() && !goal_result_available_) {
@@ -159,6 +166,15 @@ public:
 
         // check if, after invoking spin_some(), we finally received the result
         if (!goal_result_available_) {
+          // check timeout
+          auto dur = node_->get_clock()->now() - start_time;
+          if (dur > timeout_dur) {
+            RCLCPP_INFO_STREAM(
+              node_->get_logger(),
+              "[" << name() << "] TIMEOUT");
+            return BT::NodeStatus::FAILURE;
+          }
+
           // Yield this Action, returning RUNNING
           return BT::NodeStatus::RUNNING;
         }
@@ -242,12 +258,12 @@ protected:
         RCLCPP_INFO_STREAM(node_->get_logger(), "[" << name() << "] on new goal received(result)");
 
         if (this->goal_handle_->get_goal_id() == result.goal_id) {
+          goal_result_available_ = true;
+          result_ = result;
+        } else {
           RCLCPP_ERROR_STREAM(
             node_->get_logger(),
             "[" << name() << "] on new goal received(result) - wrong goal id");
-
-          goal_result_available_ = true;
-          result_ = result;
         }
       };
 
