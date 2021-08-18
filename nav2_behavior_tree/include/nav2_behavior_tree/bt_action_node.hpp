@@ -160,9 +160,6 @@ public:
         // check if, after invoking spin_some(), we finally received the result
         if (!goal_result_available_) {
           // Yield this Action, returning RUNNING
-          RCLCPP_INFO_STREAM(
-            node_->get_logger(),
-            "[" << name() << "] Check action result : " << status());
           return BT::NodeStatus::RUNNING;
         }
       }
