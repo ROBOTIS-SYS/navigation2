@@ -239,12 +239,13 @@ protected:
         // if goal ids are not matched, the older goal call this callback so ignore the result
         // if matched, it must be processed (including aborted)
 
-        RCLCPP_INFO_STREAM(
-          node_->get_logger(),
-          "[" << name() << "] on new goal received(result) goal_id :" << result.goal_id << ", return_goal_id : " <<
-            this->goal_handle_->get_goal_id());
+        RCLCPP_INFO_STREAM(node_->get_logger(), "[" << name() << "] on new goal received(result)");
 
         if (this->goal_handle_->get_goal_id() == result.goal_id) {
+          RCLCPP_ERROR_STREAM(
+            node_->get_logger(),
+            "[" << name() << "] on new goal received(result) - wrong goal id");
+
           goal_result_available_ = true;
           result_ = result;
         }
