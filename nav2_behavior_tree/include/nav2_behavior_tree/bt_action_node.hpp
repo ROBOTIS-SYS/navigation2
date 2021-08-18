@@ -132,7 +132,7 @@ public:
   {
     RCLCPP_INFO_STREAM(
       node_->get_logger(),
-      "[" << name() << "] TICK, timeout : " << server_timeout_);
+      "[" << name() << "] TICK, timeout : " << server_timeout_.count() << "ms");
 
     try {
 // first step to be done only at the beginning of the Action
