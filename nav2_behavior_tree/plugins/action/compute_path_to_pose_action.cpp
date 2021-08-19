@@ -29,12 +29,13 @@ ComputePathToPoseAction::ComputePathToPoseAction(
 
 void ComputePathToPoseAction::on_tick()
 {
+  getInput("goal", goal_.pose);
+  getInput("planner_id", goal_.planner_id);
+
   RCLCPP_INFO_STREAM(
     node_->get_logger(),
     "[" << name() << "] On Tick - goal : " << goal_.pose.pose.position.x << ", " <<
       goal_.pose.pose.position.y);
-  getInput("goal", goal_.pose);
-  getInput("planner_id", goal_.planner_id);
 }
 
 BT::NodeStatus ComputePathToPoseAction::on_success()
