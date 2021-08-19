@@ -269,11 +269,18 @@ protected:
 
     auto future_goal_handle = action_client_->async_send_goal(goal_, send_goal_options);
 
-    if (rclcpp::spin_until_future_complete(node_, future_goal_handle, server_timeout_) !=
-      rclcpp::FutureReturnCode::SUCCESS)
-    {
+    RCLCPP_INFO_STREAM(
+      node_->get_logger(), "[" << name() << "] Call async action : " << status());
+
+    auto future_result =
+      rclcpp::spin_until_future_complete(node_, future_goal_handle, server_timeout_);
+    if (future_result != rclcpp::FutureReturnCode::SUCCESS) {
       throw std::runtime_error(action_name_ + " : send_goal failed");
     }
+
+    RCLCPP_INFO_STREAM(
+      node_->get_logger(),
+      "[" << name() << "] After spining until future complete : " << future_result);
 
     goal_handle_ = future_goal_handle.get();
     if (!goal_handle_) {
