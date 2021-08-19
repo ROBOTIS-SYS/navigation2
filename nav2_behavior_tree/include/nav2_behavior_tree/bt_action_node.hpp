@@ -272,6 +272,12 @@ protected:
     RCLCPP_INFO_STREAM(
       node_->get_logger(), "[" << name() << "] Call async action : " << status());
 
+    if (future_goal_handle.valid() == false) {
+      RCLCPP_ERROR_STREAM(
+        node_->get_logger(), "[" << name() << "] Failed to get action future");
+      throw std::runtime_error(action_name_ + " : failed to get actio future");
+    }
+
     auto future_result =
       rclcpp::spin_until_future_complete(node_, future_goal_handle, server_timeout_);
     if (future_result != rclcpp::FutureReturnCode::SUCCESS) {
