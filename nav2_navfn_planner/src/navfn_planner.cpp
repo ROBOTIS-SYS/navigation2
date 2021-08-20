@@ -33,10 +33,10 @@
 #include <vector>
 
 #include "builtin_interfaces/msg/duration.hpp"
+#include "nav2_costmap_2d/cost_values.hpp"
 #include "nav2_navfn_planner/navfn.hpp"
 #include "nav2_util/costmap.hpp"
 #include "nav2_util/node_utils.hpp"
-#include "nav2_costmap_2d/cost_values.hpp"
 
 using namespace std::chrono_literals;
 using nav2_util::declare_parameter_if_not_declared;
@@ -47,21 +47,16 @@ namespace nav2_navfn_planner
 {
 
 NavfnPlanner::NavfnPlanner()
-: tf_(nullptr), costmap_(nullptr)
-{
-}
+: tf_(nullptr), costmap_(nullptr) {}
 
 NavfnPlanner::~NavfnPlanner()
 {
-  RCLCPP_INFO(
-    node_->get_logger(), "Destroying plugin %s of type NavfnPlanner",
-    name_.c_str());
+  RCLCPP_INFO(node_->get_logger(), "Destroying plugin %s of type NavfnPlanner", name_.c_str());
 }
 
-void
-NavfnPlanner::configure(
-  rclcpp_lifecycle::LifecycleNode::SharedPtr parent,
-  std::string name, std::shared_ptr<tf2_ros::Buffer> tf,
+void NavfnPlanner::configure(
+  rclcpp_lifecycle::LifecycleNode::SharedPtr parent, std::string name,
+  std::shared_ptr<tf2_ros::Buffer> tf,
   std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros)
 {
   node_ = parent;
@@ -71,9 +66,7 @@ NavfnPlanner::configure(
   costmap_ros_ = costmap_ros;
   global_frame_ = costmap_ros->getGlobalFrameID();
 
-  RCLCPP_INFO(
-    node_->get_logger(), "Configuring plugin %s of type NavfnPlanner",
-    name_.c_str());
+  RCLCPP_INFO(node_->get_logger(), "Configuring plugin %s of type NavfnPlanner", name_.c_str());
 
   // Initialize parameters
   // Declare this plugin's parameters
@@ -81,53 +74,41 @@ NavfnPlanner::configure(
   node_->get_parameter(name + ".tolerance", tolerance_);
   declare_parameter_if_not_declared(node_, name + ".use_astar", rclcpp::ParameterValue(false));
   node_->get_parameter(name + ".use_astar", use_astar_);
-  declare_parameter_if_not_declared(node_, name + ".allow_unknown", rclcpp::ParameterValue(true));
+  declare_parameter_if_not_declared(
+    node_, name + ".allow_unknown", rclcpp::ParameterValue(true));
   node_->get_parameter(name + ".allow_unknown", allow_unknown_);
 
   // Create a planner based on the new costmap size
-  planner_ = std::make_unique<NavFn>(
-    costmap_->getSizeInCellsX(),
-    costmap_->getSizeInCellsY());
+  planner_ = std::make_unique<NavFn>(costmap_->getSizeInCellsX(), costmap_->getSizeInCellsY());
 
   // Setup callback for changes to parameters.
   parameters_client_ = std::make_shared<rclcpp::AsyncParametersClient>(
-    node_->get_node_base_interface(),
-    node_->get_node_topics_interface(),
-    node_->get_node_graph_interface(),
-    node_->get_node_services_interface());
+    node_->get_node_base_interface(), node_->get_node_topics_interface(),
+    node_->get_node_graph_interface(), node_->get_node_services_interface());
 
   parameter_event_sub_ = parameters_client_->on_parameter_event(
     std::bind(&NavfnPlanner::on_parameter_event_callback, this, _1));
 }
 
-void
-NavfnPlanner::activate()
+void NavfnPlanner::activate()
 {
-  RCLCPP_INFO(
-    node_->get_logger(), "Activating plugin %s of type NavfnPlanner",
-    name_.c_str());
+  RCLCPP_INFO(node_->get_logger(), "Activating plugin %s of type NavfnPlanner", name_.c_str());
 }
 
-void
-NavfnPlanner::deactivate()
+void NavfnPlanner::deactivate()
 {
   RCLCPP_INFO(
-    node_->get_logger(), "Deactivating plugin %s of type NavfnPlanner",
-    name_.c_str());
+    node_->get_logger(), "Deactivating plugin %s of type NavfnPlanner", name_.c_str());
 }
 
-void
-NavfnPlanner::cleanup()
+void NavfnPlanner::cleanup()
 {
-  RCLCPP_INFO(
-    node_->get_logger(), "Cleaning up plugin %s of type NavfnPlanner",
-    name_.c_str());
+  RCLCPP_INFO(node_->get_logger(), "Cleaning up plugin %s of type NavfnPlanner", name_.c_str());
   planner_.reset();
 }
 
 nav_msgs::msg::Path NavfnPlanner::createPlan(
-  const geometry_msgs::msg::PoseStamped & start,
-  const geometry_msgs::msg::PoseStamped & goal)
+  const geometry_msgs::msg::PoseStamped & start, const geometry_msgs::msg::PoseStamped & goal)
 {
 #ifdef BENCHMARK_TESTING
   steady_clock::time_point a = steady_clock::now();
@@ -135,34 +116,33 @@ nav_msgs::msg::Path NavfnPlanner::createPlan(
 
   // Update planner based on the new costmap size
   if (isPlannerOutOfDate()) {
-    planner_->setNavArr(
-      costmap_->getSizeInCellsX(),
-      costmap_->getSizeInCellsY());
+    planner_->setNavArr(costmap_->getSizeInCellsX(), costmap_->getSizeInCellsY());
   }
 
   nav_msgs::msg::Path path;
 
   if (!makePlan(start.pose, goal.pose, tolerance_, path)) {
     RCLCPP_WARN(
-      node_->get_logger(), "%s: failed to create plan with "
-      "tolerance %.2f.", name_.c_str(), tolerance_);
+      node_->get_logger(),
+      "%s: failed to create plan with "
+      "tolerance %.2f.",
+      name_.c_str(), tolerance_);
   }
 
 #ifdef BENCHMARK_TESTING
   steady_clock::time_point b = steady_clock::now();
   duration<double> time_span = duration_cast<duration<double>>(b - a);
-  std::cout << "It took " << time_span.count() * 1000 <<
-    " milliseconds with " << num_iterations << " iterations." << std::endl;
+  std::cout << "It took " << time_span.count() * 1000 << " milliseconds with " << num_iterations <<
+    " iterations." << std::endl;
 #endif
 
   return path;
 }
 
-bool
-NavfnPlanner::isPlannerOutOfDate()
+bool NavfnPlanner::isPlannerOutOfDate()
 {
-  if (!planner_.get() ||
-    planner_->nx != static_cast<int>(costmap_->getSizeInCellsX()) ||
+  if (
+    !planner_.get() || planner_->nx != static_cast<int>(costmap_->getSizeInCellsX()) ||
     planner_->ny != static_cast<int>(costmap_->getSizeInCellsY()))
   {
     return true;
@@ -170,11 +150,9 @@ NavfnPlanner::isPlannerOutOfDate()
   return false;
 }
 
-bool
-NavfnPlanner::makePlan(
-  const geometry_msgs::msg::Pose & start,
-  const geometry_msgs::msg::Pose & goal, double tolerance,
-  nav_msgs::msg::Path & plan)
+bool NavfnPlanner::makePlan(
+  const geometry_msgs::msg::Pose & start, const geometry_msgs::msg::Pose & goal,
+  double tolerance, nav_msgs::msg::Path & plan)
 {
   // clear the plan, just in case
   plan.poses.clear();
@@ -188,8 +166,8 @@ NavfnPlanner::makePlan(
   double wy = start.position.y;
 
   RCLCPP_DEBUG(
-    node_->get_logger(), "Making plan from (%.2f,%.2f) to (%.2f,%.2f)",
-    start.position.x, start.position.y, goal.position.x, goal.position.y);
+    node_->get_logger(), "Making plan from (%.2f,%.2f) to (%.2f,%.2f)", start.position.x,
+    start.position.y, goal.position.x, goal.position.y);
 
   unsigned int mx, my;
   if (!worldToMap(wx, wy, mx, my)) {
@@ -229,18 +207,17 @@ NavfnPlanner::makePlan(
 
   std::unique_lock<nav2_costmap_2d::Costmap2D::mutex_t> lock(*(costmap_->getMutex()));
 
-//  is_updated = costmap_ros_->isUpdated();
+  //  is_updated = costmap_ros_->isUpdated();
 
-//  if (is_updated == false) {
-//    RCLCPP_WARN(node_->get_logger(), "Costmap is not updated!");
-//    return false;
-//  }
+  //  if (is_updated == false) {
+  //    RCLCPP_WARN(node_->get_logger(), "Costmap is not updated!");
+  //    return false;
+  //  }
 
   // make sure to resize the underlying array that Navfn uses
-  planner_->setNavArr(
-    costmap_->getSizeInCellsX(),
-    costmap_->getSizeInCellsY());
+  planner_->setNavArr(costmap_->getSizeInCellsX(), costmap_->getSizeInCellsY());
 
+  RCLCPP_INFO_STREAM(node_->get_logger(), "Set Costmap for Calc a path");
   planner_->setCostmap(costmap_->getCharMap(), true, allow_unknown_);
 
   lock.unlock();
@@ -267,6 +244,10 @@ NavfnPlanner::makePlan(
   // TODO(orduno): Explain why we are providing 'map_goal' to setStart().
   //               Same for setGoal, seems reversed. Computing backwards?
 
+  RCLCPP_INFO_STREAM(
+    node_->get_logger(),
+    "Start Calc a path : from [" << map_start[0] << ", " << map_start[1] << "], to [" <<
+      map_goal[0] << ", " << map_goal[1] << "]");
   planner_->setStart(map_goal);
   planner_->setGoal(map_start);
   if (use_astar_) {
@@ -323,10 +304,8 @@ NavfnPlanner::makePlan(
   return !plan.poses.empty();
 }
 
-void
-NavfnPlanner::smoothApproachToGoal(
-  const geometry_msgs::msg::Pose & goal,
-  nav_msgs::msg::Path & plan)
+void NavfnPlanner::smoothApproachToGoal(
+  const geometry_msgs::msg::Pose & goal, nav_msgs::msg::Path & plan)
 {
   // Replace the last pose of the computed path if it's actually further away
   // to the second to last pose than the goal pose.
@@ -346,10 +325,8 @@ NavfnPlanner::smoothApproachToGoal(
   plan.poses.push_back(goal_copy);
 }
 
-bool
-NavfnPlanner::getPlanFromPotential(
-  const geometry_msgs::msg::Pose & goal,
-  nav_msgs::msg::Path & plan)
+bool NavfnPlanner::getPlanFromPotential(
+  const geometry_msgs::msg::Pose & goal, nav_msgs::msg::Path & plan)
 {
   // clear the plan, just in case
   plan.poses.clear();
@@ -375,7 +352,8 @@ NavfnPlanner::getPlanFromPotential(
   planner_->setStart(map_goal);
 
   const int & max_cycles = (costmap_->getSizeInCellsX() >= costmap_->getSizeInCellsY()) ?
-    (costmap_->getSizeInCellsX() * 4) : (costmap_->getSizeInCellsY() * 4);
+    (costmap_->getSizeInCellsX() * 4) :
+    (costmap_->getSizeInCellsY() * 4);
 
   int path_len = planner_->calcPath(max_cycles);
   if (path_len == 0) {
@@ -409,8 +387,7 @@ NavfnPlanner::getPlanFromPotential(
   return !plan.poses.empty();
 }
 
-double
-NavfnPlanner::getPointPotential(const geometry_msgs::msg::Point & world_point)
+double NavfnPlanner::getPointPotential(const geometry_msgs::msg::Point & world_point)
 {
   unsigned int mx, my;
   if (!worldToMap(world_point.x, world_point.y, mx, my)) {
@@ -458,17 +435,14 @@ NavfnPlanner::getPointPotential(const geometry_msgs::msg::Point & world_point)
 //   return false;
 // }
 
-bool
-NavfnPlanner::worldToMap(double wx, double wy, unsigned int & mx, unsigned int & my)
+bool NavfnPlanner::worldToMap(double wx, double wy, unsigned int & mx, unsigned int & my)
 {
   if (wx < costmap_->getOriginX() || wy < costmap_->getOriginY()) {
     return false;
   }
 
-  mx = static_cast<int>(
-    std::round((wx - costmap_->getOriginX()) / costmap_->getResolution()));
-  my = static_cast<int>(
-    std::round((wy - costmap_->getOriginY()) / costmap_->getResolution()));
+  mx = static_cast<int>(std::round((wx - costmap_->getOriginX()) / costmap_->getResolution()));
+  my = static_cast<int>(std::round((wy - costmap_->getOriginY()) / costmap_->getResolution()));
 
   if (mx < costmap_->getSizeInCellsX() && my < costmap_->getSizeInCellsY()) {
     return true;
@@ -481,23 +455,20 @@ NavfnPlanner::worldToMap(double wx, double wy, unsigned int & mx, unsigned int &
   return false;
 }
 
-void
-NavfnPlanner::mapToWorld(double mx, double my, double & wx, double & wy)
+void NavfnPlanner::mapToWorld(double mx, double my, double & wx, double & wy)
 {
   wx = costmap_->getOriginX() + mx * costmap_->getResolution();
   wy = costmap_->getOriginY() + my * costmap_->getResolution();
 }
 
-void
-NavfnPlanner::clearRobotCell(unsigned int mx, unsigned int my)
+void NavfnPlanner::clearRobotCell(unsigned int mx, unsigned int my)
 {
   // TODO(orduno): check usage of this function, might instead be a request to
   //               world_model / map server
   costmap_->setCost(mx, my, nav2_costmap_2d::FREE_SPACE);
 }
 
-void
-NavfnPlanner::on_parameter_event_callback(
+void NavfnPlanner::on_parameter_event_callback(
   const rcl_interfaces::msg::ParameterEvent::SharedPtr event)
 {
   for (auto & changed_parameter : event->changed_parameters) {

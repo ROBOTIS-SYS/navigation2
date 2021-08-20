@@ -222,6 +222,7 @@ PlannerServer::computePlan()
 
     geometry_msgs::msg::PoseStamped start;
     if (!costmap_ros_->getRobotPose(start)) {
+      RCLCPP_ERROR_STREAM(get_logger(), "TERMINATED : Failed to get the robot pose");
       action_server_->terminate_current();
       return;
     }
@@ -234,7 +235,7 @@ PlannerServer::computePlan()
 
     if (result->path.poses.size() == 0) {
       RCLCPP_WARN(
-        get_logger(), "Planning algorithm %s failed to generate a valid"
+        get_logger(), "TERMINATED : Planning algorithm %s failed to generate a valid"
         " path to (%.2f, %.2f)", goal->planner_id.c_str(),
         goal->pose.pose.position.x, goal->pose.pose.position.y);
       action_server_->terminate_current();

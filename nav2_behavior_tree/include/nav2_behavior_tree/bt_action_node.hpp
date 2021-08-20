@@ -67,7 +67,8 @@ public:
   void createActionClient(const std::string & action_name)
   {
     // Now that we have the ROS node to use, create the action client for this BT action
-    action_client_ = rclcpp_action::create_client<ActionT>(node_, action_name);
+    rcl_action_client_options_t option;
+    action_client_ = rclcpp_action::create_client<ActionT>(node_, action_name, option);
 
     // Make sure the server is actually there before continuing
     RCLCPP_INFO(node_->get_logger(), "Waiting for \"%s\" action server", action_name.c_str());
@@ -181,7 +182,7 @@ public:
       }
 
     } catch (std::exception & ex) {
-      RCLCPP_ERROR_STREAM(node_->get_logger(), "[" << name() << "] Exception : " << ex.what());
+      RCLCPP_ERROR_STREAM(node_->get_logger(), "[" << name() << "] Exception - " << ex.what());
       return BT::NodeStatus::FAILURE;
     }
 
@@ -275,7 +276,7 @@ protected:
     if (future_goal_handle.valid() == false) {
       RCLCPP_ERROR_STREAM(
         node_->get_logger(), "[" << name() << "] Failed to get action future");
-      throw std::runtime_error(action_name_ + " : failed to get actio future");
+      throw std::runtime_error(action_name_ + " : failed to get action future");
     }
 
     auto future_result =
