@@ -202,6 +202,8 @@ PlannerServer::on_shutdown(const rclcpp_lifecycle::State &)
 void
 PlannerServer::computePlan()
 {
+  RCLCPP_INFO_STREAM(get_logger(), "Action Execution : Start computing path");
+
   auto start_time = steady_clock_.now();
 
   // Initialize the ComputePathToPose goal and result
