@@ -67,8 +67,7 @@ public:
   void createActionClient(const std::string & action_name)
   {
     // Now that we have the ROS node to use, create the action client for this BT action
-    rcl_action_client_options_t option;
-    action_client_ = rclcpp_action::create_client<ActionT>(node_, action_name, option);
+    action_client_ = rclcpp_action::create_client<ActionT>(node_, action_name);
 
     // Make sure the server is actually there before continuing
     RCLCPP_INFO(node_->get_logger(), "Waiting for \"%s\" action server", action_name.c_str());
