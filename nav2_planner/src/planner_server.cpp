@@ -264,6 +264,10 @@ PlannerServer::computePlan()
     }
 
     action_server_->succeeded_current(result);
+    RCLCPP_INFO(
+      get_logger(), "SUCCEEDED : Planning algorithm %s succeeded to generate a valid"
+      " path to (%.2f, %.2f)", goal->planner_id.c_str(),
+      goal->pose.pose.position.x, goal->pose.pose.position.y);
   } catch (std::exception & ex) {
     RCLCPP_WARN(
       get_logger(), "%s plugin failed to plan calculation to (%.2f, %.2f): \"%s\"",
