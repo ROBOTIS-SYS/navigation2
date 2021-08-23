@@ -29,7 +29,7 @@ ClearEntireCostmapService::ClearEntireCostmapService(
 
 void ClearEntireCostmapService::on_tick()
 {
-  std::cout << "[" << name() << "] On Tick : " << status() << std::endl;
+  RCLCPP_INFO_STREAM(node_->get_logger(), "[" << name() << "] On Tick : " << status());
   increment_recovery_count();
 }
 

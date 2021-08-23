@@ -133,6 +133,10 @@ public:
     try {
 // first step to be done only at the beginning of the Action
       if (status() == BT::NodeStatus::IDLE) {
+        RCLCPP_INFO_STREAM(
+          node_->get_logger(),
+          "[" << name() << "] TICK, timeout : " << server_timeout_.count() << "ms");
+
         // setting the status to RUNNING to notify the BT Loggers (if any)
         setStatus(BT::NodeStatus::RUNNING);
 
@@ -141,6 +145,9 @@ public:
 
         on_new_goal_received();
       }
+
+      auto start_time = node_->get_clock()->now();
+      rclcpp::Duration timeout_dur(server_timeout_ * 2);
 
       // The following code corresponds to the "RUNNING" loop
       if (rclcpp::ok() && !goal_result_available_) {
@@ -159,15 +166,28 @@ public:
 
         // check if, after invoking spin_some(), we finally received the result
         if (!goal_result_available_) {
+          // check timeout
+          auto dur = node_->get_clock()->now() - start_time;
+          if (dur > timeout_dur) {
+            RCLCPP_INFO_STREAM(
+              node_->get_logger(),
+              "[" << name() << "] TIMEOUT");
+            return BT::NodeStatus::FAILURE;
+          }
+
           // Yield this Action, returning RUNNING
           return BT::NodeStatus::RUNNING;
         }
       }
 
     } catch (std::exception & ex) {
-      RCLCPP_ERROR(node_->get_logger(), ex.what());
+      RCLCPP_ERROR_STREAM(node_->get_logger(), "[" << name() << "] Exception - " << ex.what());
       return BT::NodeStatus::FAILURE;
     }
+
+    RCLCPP_INFO_STREAM(
+      node_->get_logger(),
+      "[" << name() << "] Check action result : " << status());
 
     switch (result_.code) {
       case rclcpp_action::ResultCode::SUCCEEDED:
@@ -224,6 +244,9 @@ protected:
 
   void on_new_goal_received()
   {
+    RCLCPP_INFO_STREAM(
+      node_->get_logger(),
+      "[" << name() << "] On new goal received() : " << status());
     goal_result_available_ = false;
     auto send_goal_options = typename rclcpp_action::Client<ActionT>::SendGoalOptions();
     send_goal_options.result_callback =
@@ -231,19 +254,39 @@ protected:
         // TODO(#1652): a work around until rcl_action interface is updated
         // if goal ids are not matched, the older goal call this callback so ignore the result
         // if matched, it must be processed (including aborted)
+
+        RCLCPP_INFO_STREAM(node_->get_logger(), "[" << name() << "] On new goal received(result)");
+
         if (this->goal_handle_->get_goal_id() == result.goal_id) {
           goal_result_available_ = true;
           result_ = result;
+        } else {
+          RCLCPP_ERROR_STREAM(
+            node_->get_logger(),
+            "[" << name() << "] on new goal received(result) - wrong goal id");
         }
       };
 
     auto future_goal_handle = action_client_->async_send_goal(goal_, send_goal_options);
 
-    if (rclcpp::spin_until_future_complete(node_, future_goal_handle, server_timeout_) !=
-      rclcpp::FutureReturnCode::SUCCESS)
-    {
+    RCLCPP_INFO_STREAM(
+      node_->get_logger(), "[" << name() << "] Call async action : " << status());
+
+    if (future_goal_handle.valid() == false) {
+      RCLCPP_ERROR_STREAM(
+        node_->get_logger(), "[" << name() << "] Failed to get action future");
+      throw std::runtime_error(action_name_ + " : failed to get action future");
+    }
+
+    auto future_result =
+      rclcpp::spin_until_future_complete(node_, future_goal_handle, server_timeout_);
+    if (future_result != rclcpp::FutureReturnCode::SUCCESS) {
       throw std::runtime_error(action_name_ + " : send_goal failed");
     }
+
+    RCLCPP_INFO_STREAM(
+      node_->get_logger(),
+      "[" << name() << "] After spining until future complete : " << future_result);
 
     goal_handle_ = future_goal_handle.get();
     if (!goal_handle_) {
