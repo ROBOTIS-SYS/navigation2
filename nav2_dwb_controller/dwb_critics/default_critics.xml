@@ -37,6 +37,9 @@
     <class type="dwb_critics::TwirlingCritic" base_class_type="dwb_core::TrajectoryCritic">
       <description>Penalize trajectories with rotational velocities
       </description>
+    </class>    
+    <class type="dwb_critics::PreferDirectionCritic" base_class_type="dwb_core::TrajectoryCritic">
+      <description>Penalize trajectories with some direction</description>
     </class>
   </library>
 </class_libraries>
