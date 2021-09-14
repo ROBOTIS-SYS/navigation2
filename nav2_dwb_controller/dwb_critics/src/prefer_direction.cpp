@@ -63,19 +63,25 @@ void PreferDirectionCritic::onInit()
 
 double PreferDirectionCritic::scoreTrajectory(const dwb_msgs::msg::Trajectory2D & traj)
 {
-  std::cout << "Tra vel | x : " << traj.velocity.x << ", y : " << traj.velocity.y <<
-    ", theta : " << traj.velocity.theta << std::endl;
+//  std::cout << "Tra vel | x : " << traj.velocity.x << ", y : " << traj.velocity.y <<
+//    ", theta : " << traj.velocity.theta << std::endl;
 
-  if (prefer_right_ && traj.velocity.theta > 0.0) {
-//    std::cout << "[PreferDirection]|Right| theta : " << traj.velocity.theta << ", penalty : " <<
-//      penalty_ << std::endl;
-    return penalty_;
-  }
-
-  if (!prefer_right_ && traj.velocity.theta < 0.0) {
-//    std::cout << "[PreferDirection]|Left| theta : " << traj.velocity.theta << ", penalty : " <<
-//      penalty_ << std::endl;
-    return penalty_;
+  if (prefer_right_) {
+    if (traj.velocity.theta > 0.0) {
+      std::cout << "[PreferDirection]|Right| theta : " << traj.velocity.theta << ", penalty : " <<
+        penalty_ << std::endl;
+      return penalty_;
+    } else {
+      return 0.0;
+    }
+  } else {
+    if (traj.velocity.theta < 0.0) {
+      std::cout << "[PreferDirection]|Left| theta : " << traj.velocity.theta << ", penalty : " <<
+        penalty_ << std::endl;
+      return penalty_;
+    } else {
+      return 0.0;
+    }
   }
 
   return 0.0;
