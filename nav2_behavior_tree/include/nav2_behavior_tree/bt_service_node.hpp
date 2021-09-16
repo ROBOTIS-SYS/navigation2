@@ -45,21 +45,23 @@ public:
     // Now that we have node_ to use, create the service client for this BT service
     getInput("service_name", service_name_);
 
-    try {
-      bool on_blackboard = config().blackboard->get<decltype(service_client_)>(
-        service_name_, service_client_);
+    service_client_ = node_->create_client<ServiceT>(service_name_);
 
-      if (on_blackboard == false) {
-        service_client_ = node_->create_client<ServiceT>(service_name_);
-        config().blackboard->set<decltype(service_client_)>(
-          service_name_, service_client_);
-      }
-    } catch (std::exception & ex) {
-      RCLCPP_ERROR(
-        node_->get_logger(), "Failed to create \"%s\" service",
-        service_name_.c_str());
-      return;
-    }
+//    try {
+//      bool on_blackboard = config().blackboard->get<decltype(service_client_)>(
+//        service_name_, service_client_);
+
+//      if (on_blackboard == false) {
+//        service_client_ = node_->create_client<ServiceT>(service_name_);
+//        config().blackboard->set<decltype(service_client_)>(
+//          service_name_, service_client_);
+//      }
+//    } catch (std::exception & ex) {
+//      RCLCPP_ERROR(
+//        node_->get_logger(), "Failed to create \"%s\" service",
+//        service_name_.c_str());
+//      return;
+//    }
 
     // Make a request for the service without parameter
     request_ = std::make_shared<typename ServiceT::Request>();
