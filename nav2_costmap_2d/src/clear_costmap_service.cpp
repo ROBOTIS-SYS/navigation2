@@ -112,6 +112,9 @@ void ClearCostmapService::clearRegion(const double reset_distance, bool invert)
       clearLayerRegion(costmap_layer, x, y, reset_distance, invert);
     }
   }
+
+  // AlexeyMerzlyakov: No need to clear layer region for costmap filters
+  // as they are always supposed to be not clearable.
 }
 
 void ClearCostmapService::clearLayerRegion(
@@ -126,8 +129,8 @@ void ClearCostmapService::clearLayerRegion(
   double end_point_y = start_point_y + reset_distance;
 
   int start_x, start_y, end_x, end_y;
-  costmap->worldToMapNoBounds(start_point_x, start_point_y, start_x, start_y);
-  costmap->worldToMapNoBounds(end_point_x, end_point_y, end_x, end_y);
+  costmap->worldToMapEnforceBounds(start_point_x, start_point_y, start_x, start_y);
+  costmap->worldToMapEnforceBounds(end_point_x, end_point_y, end_x, end_y);
 
   costmap->clearArea(start_x, start_y, end_x, end_y, invert);
 

@@ -48,11 +48,13 @@ class ControllerServer : public nav2_util::LifecycleNode
 {
 public:
   using ControllerMap = std::unordered_map<std::string, nav2_core::Controller::Ptr>;
+  using GoalCheckerMap = std::unordered_map<std::string, nav2_core::GoalChecker::Ptr>;
 
   /**
    * @brief Constructor for nav2_controller::ControllerServer
+   * @param options Additional options to control creation of the node.
    */
-  ControllerServer();
+  explicit ControllerServer(const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
   /**
    * @brief Destructor for nav2_controller::ControllerServer
    */
@@ -129,6 +131,15 @@ protected:
    * @return bool Whether it found a valid controller to use
    */
   bool findControllerId(const std::string & c_name, std::string & name);
+
+  /**
+   * @brief Find the valid goal checker ID name for the specified parameter
+   *
+   * @param c_name The goal checker name
+   * @param name Reference to the name to use for goal checking if any valid available
+   * @return bool Whether it found a valid goal checker to use
+   */
+  bool findGoalCheckerId(const std::string & c_name, std::string & name);
 
   /**
    * @brief Assigns path to controller
@@ -209,11 +220,12 @@ protected:
 
   // Goal Checker Plugin
   pluginlib::ClassLoader<nav2_core::GoalChecker> goal_checker_loader_;
-  nav2_core::GoalChecker::Ptr goal_checker_;
-  std::string default_goal_checker_id_;
-  std::string default_goal_checker_type_;
-  std::string goal_checker_id_;
-  std::string goal_checker_type_;
+  GoalCheckerMap goal_checkers_;
+  std::vector<std::string> default_goal_checker_ids_;
+  std::vector<std::string> default_goal_checker_types_;
+  std::vector<std::string> goal_checker_ids_;
+  std::vector<std::string> goal_checker_types_;
+  std::string goal_checker_ids_concat_, current_goal_checker_;
 
   // Controller Plugins
   pluginlib::ClassLoader<nav2_core::Controller> lp_loader_;
