@@ -183,6 +183,16 @@ Costmap2DROS::on_configure(const rclcpp_lifecycle::State & /*state*/)
   // Add cleaning service
   clear_costmap_service_ = std::make_unique<ClearCostmapService>(shared_from_this(), *this);
 
+  // parameter
+  parameters_client_ = std::make_shared<rclcpp::AsyncParametersClient>(
+    get_node_base_interface(),
+    get_node_topics_interface(),
+    get_node_graph_interface(),
+    get_node_services_interface());
+
+  parameter_sub_ = parameters_client_->on_parameter_event(
+    std::bind(&Costmap2DROS::on_parameter_event_callback, this, std::placeholders::_1));
+
   return nav2_util::CallbackReturn::SUCCESS;
 }
 
@@ -279,6 +289,98 @@ Costmap2DROS::on_shutdown(const rclcpp_lifecycle::State &)
 {
   RCLCPP_INFO(get_logger(), "Shutting down");
   return nav2_util::CallbackReturn::SUCCESS;
+}
+
+void Costmap2DROS::on_parameter_event_callback(
+  const rcl_interfaces::msg::ParameterEvent::SharedPtr event)
+{
+
+  using rcl_interfaces::msg::ParameterType;
+
+  for (auto & changed_parameter : event->changed_parameters) {
+    const auto & type = changed_parameter.value.type;
+    const auto & name = changed_parameter.name;
+    const auto & value = changed_parameter.value;
+
+    if (name == "plugins" && type == ParameterType::PARAMETER_STRING_ARRAY) {
+      plugin_names_ = value.string_array_value;
+      auto node = shared_from_this();
+      if (plugin_names_ == default_plugins_) {
+        for (size_t i = 0; i < default_plugins_.size(); ++i) {
+          nav2_util::declare_parameter_if_not_declared(
+            node, default_plugins_[i] + ".plugin", rclcpp::ParameterValue(default_types_[i]));
+        }
+      }
+      plugin_types_.resize(plugin_names_.size());
+
+      for (size_t i = 0; i < plugin_names_.size(); ++i) {
+        plugin_types_[i] = nav2_util::get_plugin_type_param(node, plugin_names_[i]);
+      }
+    }
+
+    if (name == "always_send_full_costmap" && type == ParameterType::PARAMETER_BOOL) {
+      always_send_full_costmap_ = value.bool_value;
+    }
+    if (name == "footprint" && type == ParameterType::PARAMETER_STRING) {
+      footprint_ = value.string_value;
+
+      if (footprint_ != "" && footprint_ != "[]") {
+        // Footprint parameter has been specified, try to convert it
+        std::vector<geometry_msgs::msg::Point> new_footprint;
+        if (makeFootprintFromString(footprint_, new_footprint)) {
+          // The specified footprint is valid, so we'll use that instead of the radius
+          use_radius_ = false;
+        } else {
+          // Footprint provided but invalid, so stay with the radius
+          RCLCPP_ERROR(
+            get_logger(), "The footprint parameter is invalid: \"%s\", using radius (%lf) instead",
+            footprint_.c_str(), robot_radius_);
+        }
+      }
+    }
+    if (name == "footprint_padding" && type == ParameterType::PARAMETER_DOUBLE) {
+      footprint_padding_ = value.double_value;
+    }
+    if (name == "global_frame" && type == ParameterType::PARAMETER_STRING) {
+      global_frame_ = value.string_value;
+    }
+    if (name == "height" && type == ParameterType::PARAMETER_INTEGER) {
+      map_height_meters_ = value.integer_value;
+    }
+    if (name == "origin_x" && type == ParameterType::PARAMETER_DOUBLE) {
+      origin_x_ = value.double_value;
+    }
+    if (name == "origin_y" && type == ParameterType::PARAMETER_DOUBLE) {
+      origin_y_ = value.double_value;
+    }
+    if (name == "publish_frequency" && type == ParameterType::PARAMETER_DOUBLE) {
+      map_publish_frequency_ = value.double_value;
+    }
+    if (name == "resolution" && type == ParameterType::PARAMETER_DOUBLE) {
+      resolution_ = value.double_value;
+    }
+    if (name == "robot_base_frame" && type == ParameterType::PARAMETER_STRING) {
+      robot_base_frame_ = value.string_value;
+    }
+    if (name == "robot_radius" && type == ParameterType::PARAMETER_DOUBLE) {
+      robot_radius_ = value.double_value;
+    }
+    if (name == "rolling_window" && type == ParameterType::PARAMETER_BOOL) {
+      rolling_window_ = value.bool_value;
+    }
+    if (name == "track_unknown_space" && type == ParameterType::PARAMETER_BOOL) {
+      track_unknown_space_ = value.bool_value;
+    }
+    if (name == "transform_tolerance" && type == ParameterType::PARAMETER_DOUBLE) {
+      transform_tolerance_ = value.double_value;
+    }
+    if (name == "update_frequency" && type == ParameterType::PARAMETER_DOUBLE) {
+      map_update_frequency_ = value.double_value;
+    }
+    if (name == "width" && type == ParameterType::PARAMETER_INTEGER) {
+      map_width_meters_ = value.integer_value;
+    }
+  }
 }
 
 void

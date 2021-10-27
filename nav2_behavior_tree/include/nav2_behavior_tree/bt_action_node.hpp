@@ -66,8 +66,22 @@ public:
   // Create instance of an action server
   void createActionClient(const std::string & action_name)
   {
-    // Now that we have the ROS node to use, create the action client for this BT action
-    action_client_ = rclcpp_action::create_client<ActionT>(node_, action_name);
+    try {
+      bool on_blackboard = config().blackboard->get<decltype(action_client_)>(
+        action_name, action_client_);
+
+      if (on_blackboard == false) {
+        // Now that we have the ROS node to use, create the action client for this BT action
+        action_client_ = rclcpp_action::create_client<ActionT>(node_, action_name);
+        config().blackboard->set<decltype(action_client_)>(
+          action_name, action_client_);
+      }
+    } catch (std::exception & ex) {
+      RCLCPP_ERROR(
+        node_->get_logger(), "Failed to create \"%s\" action",
+        action_name.c_str());
+      return;
+    }
 
     // Make sure the server is actually there before continuing
     RCLCPP_INFO(node_->get_logger(), "Waiting for \"%s\" action server", action_name.c_str());

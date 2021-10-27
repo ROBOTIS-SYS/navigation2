@@ -551,6 +551,14 @@ AmclNode::initialPoseReceived(geometry_msgs::msg::PoseWithCovarianceStamped::Sha
   // Overriding last published pose to initial pose
   last_published_pose_ = *msg;
 
+  // print receivec init pose
+  RCLCPP_INFO(
+    get_logger(), "Received initial pose (%.6f): %.3f %.3f %.3f",
+    now().nanoseconds() * 1e-9,
+    msg->pose.pose.position.x,
+    msg->pose.pose.position.y,
+    tf2::getYaw(msg->pose.pose.orientation));
+
   if (!active_) {
     init_pose_received_on_inactive = true;
     RCLCPP_WARN(

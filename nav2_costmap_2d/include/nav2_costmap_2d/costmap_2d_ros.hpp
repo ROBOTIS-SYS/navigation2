@@ -42,6 +42,8 @@
 #include <string>
 #include <vector>
 
+#include "rclcpp/rclcpp.hpp"
+#include "rcl_interfaces/msg/parameter_event.hpp"
 #include "geometry_msgs/msg/polygon.h"
 #include "geometry_msgs/msg/polygon_stamped.h"
 #include "nav2_costmap_2d/costmap_2d_publisher.hpp"
@@ -259,6 +261,8 @@ public:
   bool isUpdated() {return is_updated_;}
 
 protected:
+  void on_parameter_event_callback(const rcl_interfaces::msg::ParameterEvent::SharedPtr event);
+
   rclcpp::Node::SharedPtr client_node_;
 
   // Publishers and subscribers
@@ -268,6 +272,7 @@ protected:
 
   rclcpp::Subscription<geometry_msgs::msg::Polygon>::SharedPtr footprint_sub_;
   rclcpp::Subscription<rcl_interfaces::msg::ParameterEvent>::SharedPtr parameter_sub_;
+  rclcpp::AsyncParametersClient::SharedPtr parameters_client_;
 
   // Transform listener
   std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
