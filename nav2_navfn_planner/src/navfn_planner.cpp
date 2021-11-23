@@ -117,6 +117,8 @@ nav_msgs::msg::Path NavfnPlanner::createPlan(
   // Update planner based on the new costmap size
   if (isPlannerOutOfDate()) {
     planner_->setNavArr(costmap_->getSizeInCellsX(), costmap_->getSizeInCellsY());
+    RCLCPP_WARN_STREAM(
+      node_->get_logger(), name_ << " : Planner is out of date, getting the latest costmap");
   }
 
   nav_msgs::msg::Path path;
