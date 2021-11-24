@@ -19,6 +19,7 @@
 
 #include "nav2_util/robot_utils.hpp"
 #include "rclcpp/logger.hpp"
+#include "rclcpp/clock.hpp"
 
 namespace nav2_util
 {
@@ -34,7 +35,9 @@ bool getCurrentPose(
   tf2::toMsg(tf2::Transform::getIdentity(), global_pose.pose);
   tf2::toMsg(tf2::Transform::getIdentity(), robot_pose.pose);
   robot_pose.header.frame_id = robot_frame;
-  robot_pose.header.stamp = rclcpp::Time();
+  //  robot_pose.header.stamp = rclcpp::Time();
+  static rclcpp::Clock clock = rclcpp::Clock();
+  robot_pose.header.stamp = clock.now();
 
   try {
     global_pose = tf_buffer.transform(
