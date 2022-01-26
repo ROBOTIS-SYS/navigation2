@@ -82,14 +82,14 @@ void RotateToPathCritic::reset()
 
 bool RotateToPathCritic::prepare(
   const geometry_msgs::msg::Pose2D & pose, const nav_2d_msgs::msg::Twist2D & vel,
-  const geometry_msgs::msg::Pose2D & goal,
+  const geometry_msgs::msg::Pose2D &,
   const nav_2d_msgs::msg::Path2D & global_plan)
 {
   double diff_x = 0.0;
   double diff_y = 0.0;
   double diff_theta = 0.0;
 
-  for (int ix = 0; ix < global_plan.poses.size(); ix++) {
+  for (size_t ix = 0; ix < global_plan.poses.size(); ix++) {
     double temp_diff_x = global_plan.poses.at(ix).x - pose.x;
     double temp_diff_y = global_plan.poses.at(ix).y - pose.y;
     if (lokahead_distance_ < sqrt(temp_diff_x * temp_diff_x + temp_diff_y * temp_diff_y)) {
