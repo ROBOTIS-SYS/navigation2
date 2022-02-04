@@ -181,13 +181,13 @@ public:
         // check if, after invoking spin_some(), we finally received the result
         if (!goal_result_available_) {
           // check timeout
-          auto dur = node_->get_clock()->now() - start_time_;
-          if (dur > timeout_dur) {
-            RCLCPP_INFO_STREAM(
-              node_->get_logger(),
-              "[" << name() << "] TIMEOUT");
-            return BT::NodeStatus::FAILURE;
-          }
+//          auto dur = node_->get_clock()->now() - start_time_;
+//          if (dur > timeout_dur) {
+//            RCLCPP_INFO_STREAM(
+//              node_->get_logger(),
+//              "[" << name() << "] TIMEOUT");
+//            return BT::NodeStatus::FAILURE;
+//          }
 
           // Yield this Action, returning RUNNING
           return BT::NodeStatus::RUNNING;
