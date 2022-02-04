@@ -55,12 +55,12 @@ void RotateToPathCritic::onInit()
 {
   double theta_tolerance_deg = nav_2d_utils::searchAndGetParam(
     nh_,
-    dwb_plugin_name_ + ".theta_tolerance", 60.0);
+    dwb_plugin_name_ + "." + name_ + ".theta_tolerance", 60.0);
   theta_tolerance_ = theta_tolerance_deg * M_PI / 180.0;
   theta_tolerance_sq_ = theta_tolerance_ * theta_tolerance_;
   double in_window_xy_velocity = nav_2d_utils::searchAndGetParam(
     nh_,
-    dwb_plugin_name_ + ".trans_in_window_velocity", 0.25);
+    dwb_plugin_name_ + "." + name_ + ".trans_in_window_velocity", 0.25);
   in_window_xy_velocity_sq_ = in_window_xy_velocity * in_window_xy_velocity;
   slowing_factor_ = nav_2d_utils::searchAndGetParam(
     nh_,
