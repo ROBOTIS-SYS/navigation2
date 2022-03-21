@@ -157,10 +157,10 @@ public:
         // user defined callback
         on_tick();
 
+        // send goal and set the future & callback
         on_new_goal_received();
       }
 
-      auto start_time = node_->get_clock()->now();
       rclcpp::Duration timeout_dur(server_timeout_ * 2);
 
       // The following code corresponds to the "RUNNING" loop
@@ -181,13 +181,13 @@ public:
         // check if, after invoking spin_some(), we finally received the result
         if (!goal_result_available_) {
           // check timeout
-          auto dur = node_->get_clock()->now() - start_time;
-          if (dur > timeout_dur) {
-            RCLCPP_INFO_STREAM(
-              node_->get_logger(),
-              "[" << name() << "] TIMEOUT");
-            return BT::NodeStatus::FAILURE;
-          }
+//          auto dur = node_->get_clock()->now() - start_time_;
+//          if (dur > timeout_dur) {
+//            RCLCPP_INFO_STREAM(
+//              node_->get_logger(),
+//              "[" << name() << "] TIMEOUT");
+//            return BT::NodeStatus::FAILURE;
+//          }
 
           // Yield this Action, returning RUNNING
           return BT::NodeStatus::RUNNING;
@@ -247,6 +247,12 @@ protected:
       return false;
     }
 
+    bool no_cancel_goal = false;
+    bool result_blackboard = config().blackboard->get<bool>("no_cancel_goal", no_cancel_goal);  // NOLINT
+    if (result_blackboard && no_cancel_goal) {
+      return false;
+    }
+
     rclcpp::spin_some(node_);
     auto status = goal_handle_->get_status();
 
@@ -258,6 +264,8 @@ protected:
 
   void on_new_goal_received()
   {
+    start_time_ = node_->get_clock()->now();
+
     RCLCPP_INFO_STREAM(
       node_->get_logger(),
       "[" << name() << "] On new goal received() : " << status());
@@ -332,6 +340,7 @@ protected:
   // The timeout value while waiting for response from a server when a
   // new action goal is sent or canceled
   std::chrono::milliseconds server_timeout_;
+  rclcpp::Time start_time_;
 };
 
 }  // namespace nav2_behavior_tree
