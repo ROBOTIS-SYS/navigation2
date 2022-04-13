@@ -108,7 +108,7 @@ public:
    * @param nx The x size of the map
    * @param ny The y size of the map
    */
-  NavFn(int nx, int ny);
+  NavFn(int size_x, int size_y);
 
   ~NavFn();
 
@@ -117,8 +117,8 @@ public:
    * @param nx The x size of the map
    * @param ny The y size of the map
    */
-  void setNavArr(int nx, int ny);
-  int nx, ny, ns;  /**< size of grid, in pixels */
+  void setNavArr(int size_x, int size_y);
+  int size_x, size_y, size_grid;  /**< size of grid, in pixels */
 
   /**
    * @brief  Set up the cost array for the planner, usually from ROS

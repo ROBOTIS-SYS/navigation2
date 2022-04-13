@@ -207,9 +207,9 @@ NavFn::setNavArr(int xs, int ys)
 {
   RCLCPP_DEBUG(rclcpp::get_logger("rclcpp"), "[NavFn] Array is %d x %d\n", xs, ys);
 
-  nx = xs;
-  ny = ys;
-  ns = nx * ny;
+  size_x = xs;
+  size_y = ys;
+  size_grid = size_x * size_y;
 
   if (costarr) {
     delete[] costarr;
@@ -228,13 +228,13 @@ NavFn::setNavArr(int xs, int ys)
     delete[] grady;
   }
 
-  costarr = new COSTTYPE[ns];  // cost array, 2d config space
-  memset(costarr, 0, ns * sizeof(COSTTYPE));
-  potarr = new float[ns];  // navigation potential array
-  pending = new bool[ns];
-  memset(pending, 0, ns * sizeof(bool));
-  gradx = new float[ns];
-  grady = new float[ns];
+  costarr = new COSTTYPE[size_grid];  // cost array, 2d config space
+  memset(costarr, 0, size_grid * sizeof(COSTTYPE));
+  potarr = new float[size_grid];  // navigation potential array
+  pending = new bool[size_grid];
+  memset(pending, 0, size_grid * sizeof(bool));
+  gradx = new float[size_grid];
+  grady = new float[size_grid];
 }
 
 
@@ -247,9 +247,9 @@ NavFn::setCostmap(const COSTTYPE * cmap, bool isROS, bool allow_unknown)
 {
   COSTTYPE * cm = costarr;
   if (isROS) {  // ROS-type cost array
-    for (int i = 0; i < ny; i++) {
-      int k = i * nx;
-      for (int j = 0; j < nx; j++, k++, cmap++, cm++) {
+    for (int i = 0; i < size_y; i++) {
+      int k = i * size_x;
+      for (int j = 0; j < size_x; j++, k++, cmap++, cm++) {
         // This transforms the incoming cost values:
         // COST_OBS                 -> COST_OBS (incoming "lethal obstacle")
         // COST_OBS_ROS             -> COST_OBS (incoming "inscribed inflated obstacle")
@@ -269,11 +269,11 @@ NavFn::setCostmap(const COSTTYPE * cmap, bool isROS, bool allow_unknown)
       }
     }
   } else {  // not a ROS map, just a PGM
-    for (int i = 0; i < ny; i++) {
-      int k = i * nx;
-      for (int j = 0; j < nx; j++, k++, cmap++, cm++) {
+    for (int i = 0; i < size_y; i++) {
+      int k = i * size_x;
+      for (int j = 0; j < size_x; j++, k++, cmap++, cm++) {
         *cm = COST_OBS;
-        if (i < 7 || i > ny - 8 || j < 7 || j > nx - 8) {
+        if (i < 7 || i > size_y - 8 || j < 7 || j > size_x - 8) {
           continue;  // don't do borders
         }
         int v = *cmap;
@@ -298,7 +298,7 @@ NavFn::calcNavFnDijkstra(bool atStart)
   setupNavFn(true);
 
   // calculate the nav fn and path
-  return propNavFnDijkstra(std::max(nx * ny / 20, nx + ny), atStart);
+  return propNavFnDijkstra(std::max(size_x * size_y / 20, size_x + size_y), atStart);
 }
 
 
@@ -312,7 +312,7 @@ NavFn::calcNavFnAstar()
   setupNavFn(true);
 
   // calculate the nav fn and path
-  return propNavFnAstar(std::max(nx * ny / 20, nx + ny));
+  return propNavFnAstar(std::max(size_x * size_y / 20, size_x + size_y));
 }
 
 //
@@ -324,13 +324,13 @@ float * NavFn::getPathY() {return pathy;}
 int NavFn::getPathLen() {return npath;}
 
 // inserting onto the priority blocks
-#define push_cur(n)  {if (n >= 0 && n < ns && !pending[n] && \
+#define push_cur(n)  {if (n >= 0 && n < size_grid && !pending[n] && \
       costarr[n] < COST_OBS && curPe < PRIORITYBUFSIZE) \
     {curP[curPe++] = n; pending[n] = true;}}
-#define push_next(n) {if (n >= 0 && n < ns && !pending[n] && \
+#define push_next(n) {if (n >= 0 && n < size_grid && !pending[n] && \
       costarr[n] < COST_OBS && nextPe < PRIORITYBUFSIZE) \
     {nextP[nextPe++] = n; pending[n] = true;}}
-#define push_over(n) {if (n >= 0 && n < ns && !pending[n] && \
+#define push_over(n) {if (n >= 0 && n < size_grid && !pending[n] && \
       costarr[n] < COST_OBS && overPe < PRIORITYBUFSIZE) \
     {overP[overPe++] = n; pending[n] = true;}}
 
@@ -341,7 +341,7 @@ void
 NavFn::setupNavFn(bool keepit)
 {
   // reset values in propagation arrays
-  for (int i = 0; i < ns; i++) {
+  for (int i = 0; i < size_grid; i++) {
     potarr[i] = POT_HIGH;
     if (!keepit) {
       costarr[i] = COST_NEUTRAL;
@@ -352,19 +352,19 @@ NavFn::setupNavFn(bool keepit)
   // outer bounds of cost array
   COSTTYPE * pc;
   pc = costarr;
-  for (int i = 0; i < nx; i++) {
+  for (int i = 0; i < size_x; i++) {
     *pc++ = COST_OBS;
   }
-  pc = costarr + (ny - 1) * nx;
-  for (int i = 0; i < nx; i++) {
+  pc = costarr + (size_y - 1) * size_x;
+  for (int i = 0; i < size_x; i++) {
     *pc++ = COST_OBS;
   }
   pc = costarr;
-  for (int i = 0; i < ny; i++, pc += nx) {
+  for (int i = 0; i < size_y; i++, pc += size_x) {
     *pc = COST_OBS;
   }
-  pc = costarr + nx - 1;
-  for (int i = 0; i < ny; i++, pc += nx) {
+  pc = costarr + size_x - 1;
+  for (int i = 0; i < size_y; i++, pc += size_x) {
     *pc = COST_OBS;
   }
 
@@ -376,16 +376,16 @@ NavFn::setupNavFn(bool keepit)
   nextPe = 0;
   overP = pb3;
   overPe = 0;
-  memset(pending, 0, ns * sizeof(bool));
+  memset(pending, 0, size_grid * sizeof(bool));
 
   // set goal
-  int k = goal[0] + goal[1] * nx;
+  int k = goal[0] + goal[1] * size_x;
   initCost(k, 0);
 
   // find # of obstacle cells
   pc = costarr;
   int ntot = 0;
-  for (int i = 0; i < ns; i++, pc++) {
+  for (int i = 0; i < size_grid; i++, pc++) {
     if (*pc >= COST_OBS) {
       ntot++;  // number of cells that are obstacles
     }
@@ -402,8 +402,8 @@ NavFn::initCost(int k, float v)
   potarr[k] = v;
   push_cur(k + 1);
   push_cur(k - 1);
-  push_cur(k - nx);
-  push_cur(k + nx);
+  push_cur(k - size_x);
+  push_cur(k + size_x);
 }
 
 
@@ -424,8 +424,8 @@ NavFn::updateCell(int n)
   float u, d, l, r;
   l = potarr[n - 1];
   r = potarr[n + 1];
-  u = potarr[n - nx];
-  d = potarr[n + nx];
+  u = potarr[n - size_x];
+  d = potarr[n + size_x];
   // ROS_INFO("[Update] c: %0.1f  l: %0.1f  r: %0.1f  u: %0.1f  d: %0.1f\n",
   //  potarr[n], l, r, u, d);
   // ROS_INFO("[Update] cost: %d\n", costarr[n]);
@@ -463,19 +463,19 @@ NavFn::updateCell(int n)
     if (pot < potarr[n]) {
       float le = INVSQRT2 * static_cast<float>(costarr[n - 1]);
       float re = INVSQRT2 * static_cast<float>(costarr[n + 1]);
-      float ue = INVSQRT2 * static_cast<float>(costarr[n - nx]);
-      float de = INVSQRT2 * static_cast<float>(costarr[n + nx]);
+      float ue = INVSQRT2 * static_cast<float>(costarr[n - size_x]);
+      float de = INVSQRT2 * static_cast<float>(costarr[n + size_x]);
       potarr[n] = pot;
       if (pot < curT) {  // low-cost buffer block
         if (l > pot + le) {push_next(n - 1);}
         if (r > pot + re) {push_next(n + 1);}
-        if (u > pot + ue) {push_next(n - nx);}
-        if (d > pot + de) {push_next(n + nx);}
+        if (u > pot + ue) {push_next(n - size_x);}
+        if (d > pot + de) {push_next(n + size_x);}
       } else {  // overflow block
         if (l > pot + le) {push_over(n - 1);}
         if (r > pot + re) {push_over(n + 1);}
-        if (u > pot + ue) {push_over(n - nx);}
-        if (d > pot + de) {push_over(n + nx);}
+        if (u > pot + ue) {push_over(n - size_x);}
+        if (d > pot + de) {push_over(n + size_x);}
       }
     }
   }
@@ -499,8 +499,8 @@ NavFn::updateCellAstar(int n)
   float u, d, l, r;
   l = potarr[n - 1];
   r = potarr[n + 1];
-  u = potarr[n - nx];
-  d = potarr[n + nx];
+  u = potarr[n - size_x];
+  d = potarr[n + size_x];
   // ROS_INFO("[Update] c: %0.1f  l: %0.1f  r: %0.1f  u: %0.1f  d: %0.1f\n",
   // potarr[n], l, r, u, d);
   // ROS_INFO("[Update] cost of %d: %d\n", n, costarr[n]);
@@ -538,12 +538,12 @@ NavFn::updateCellAstar(int n)
     if (pot < potarr[n]) {
       float le = INVSQRT2 * static_cast<float>(costarr[n - 1]);
       float re = INVSQRT2 * static_cast<float>(costarr[n + 1]);
-      float ue = INVSQRT2 * static_cast<float>(costarr[n - nx]);
-      float de = INVSQRT2 * static_cast<float>(costarr[n + nx]);
+      float ue = INVSQRT2 * static_cast<float>(costarr[n - size_x]);
+      float de = INVSQRT2 * static_cast<float>(costarr[n + size_x]);
 
       // calculate distance
-      int x = n % nx;
-      int y = n / nx;
+      int x = n % size_x;
+      int y = n / size_x;
       float dist = hypot(x - start[0], y - start[1]) * static_cast<float>(COST_NEUTRAL);
 
       potarr[n] = pot;
@@ -551,13 +551,13 @@ NavFn::updateCellAstar(int n)
       if (pot < curT) {  // low-cost buffer block
         if (l > pot + le) {push_next(n - 1);}
         if (r > pot + re) {push_next(n + 1);}
-        if (u > pot + ue) {push_next(n - nx);}
-        if (d > pot + de) {push_next(n + nx);}
+        if (u > pot + ue) {push_next(n - size_x);}
+        if (d > pot + de) {push_next(n + size_x);}
       } else {
         if (l > pot + le) {push_over(n - 1);}
         if (r > pot + re) {push_over(n + 1);}
-        if (u > pot + ue) {push_over(n - nx);}
-        if (d > pot + de) {push_over(n + nx);}
+        if (u > pot + ue) {push_over(n - size_x);}
+        if (d > pot + de) {push_over(n + size_x);}
       }
     }
   }
@@ -580,7 +580,7 @@ NavFn::propNavFnDijkstra(int cycles, bool atStart)
   int cycle = 0;  // which cycle we're on
 
   // set up start cell
-  int startCell = start[1] * nx + start[0];
+  int start_cell = start[1] * size_x + start[0];
 
   for (; cycle < cycles; cycle++) {  // go for this many cycles, unless interrupted
     if (curPe == 0 && nextPe == 0) {  // priority blocks empty
@@ -630,7 +630,7 @@ NavFn::propNavFnDijkstra(int cycles, bool atStart)
 
     // check if we've hit the Start cell
     if (atStart) {
-      if (potarr[startCell] < POT_HIGH) {
+      if (potarr[start_cell] < POT_HIGH) {
         break;
       }
     }
@@ -639,7 +639,7 @@ NavFn::propNavFnDijkstra(int cycles, bool atStart)
   RCLCPP_DEBUG(
     rclcpp::get_logger("rclcpp"),
     "[NavFn] Used %d cycles, %d cells visited (%d%%), priority buf max %d\n",
-    cycle, nc, (int)((nc * 100.0) / (ns - nobs)), nwv);
+    cycle, nc, (int)((nc * 100.0) / (size_grid - nobs)), nwv);
 
   return (cycle < cycles) ? true : false;
 }
@@ -665,7 +665,7 @@ NavFn::propNavFnAstar(int cycles)
   curT = dist + curT;
 
   // set up start cell
-  int startCell = start[1] * nx + start[0];
+  int startCell = start[1] * size_x + start[0];
 
   // do main cycle
   for (; cycle < cycles; cycle++) {  // go for this many cycles, unless interrupted
@@ -725,7 +725,7 @@ NavFn::propNavFnAstar(int cycles)
   RCLCPP_DEBUG(
     rclcpp::get_logger("rclcpp"),
     "[NavFn] Used %d cycles, %d cells visited (%d%%), priority buf max %d\n",
-    cycle, nc, (int)((nc * 100.0) / (ns - nobs)), nwv);
+    cycle, nc, (int)((nc * 100.0) / (size_grid - nobs)), nwv);
 
   if (potarr[startCell] < POT_HIGH) {
     return true;  // finished up here}
@@ -770,7 +770,7 @@ NavFn::calcPath(int n, int * st)
   // set up start position at cell
   // st is always upper left corner for 4-point bilinear interpolation
   if (st == NULL) {st = start;}
-  int stc = st[1] * nx + st[0];
+  int stc = st[1] * size_x + st[0];
 
   // set up offset
   float dx = 0;
@@ -783,22 +783,22 @@ NavFn::calcPath(int n, int * st)
     int nearest_point = std::max(
       0,
       std::min(
-        nx * ny - 1, stc + static_cast<int>(round(dx)) +
-        static_cast<int>(nx * round(dy))));
+        size_x * size_y - 1, stc + static_cast<int>(round(dx)) +
+        static_cast<int>(size_x * round(dy))));
     if (potarr[nearest_point] < COST_NEUTRAL) {
       pathx[npath] = static_cast<float>(goal[0]);
       pathy[npath] = static_cast<float>(goal[1]);
       return ++npath;  // done!
     }
 
-    if (stc < nx || stc > ns - nx) {  // would be out of bounds
+    if (stc < size_x || stc > size_grid - size_x) {  // would be out of bounds
       RCLCPP_DEBUG(rclcpp::get_logger("rclcpp"), "[PathCalc] Out of bounds");
       return 0;
     }
 
     // add to path
-    pathx[npath] = stc % nx + dx;
-    pathy[npath] = stc / nx + dy;
+    pathx[npath] = stc % size_x + dx;
+    pathy[npath] = stc / size_x + dy;
     npath++;
 
     bool oscillation_detected = false;
@@ -812,8 +812,8 @@ NavFn::calcPath(int n, int * st)
       oscillation_detected = true;
     }
 
-    int stcnx = stc + nx;
-    int stcpx = stc - nx;
+    int stcnx = stc + size_x;
+    int stcpx = stc - size_x;
 
     // check for potentials at eight positions near cell
     if (potarr[stc] >= POT_HIGH ||
@@ -903,8 +903,8 @@ NavFn::calcPath(int n, int * st)
       // check for overflow
       if (dx > 1.0) {stc++; dx -= 1.0;}
       if (dx < -1.0) {stc--; dx += 1.0;}
-      if (dy > 1.0) {stc += nx; dy -= 1.0;}
-      if (dy < -1.0) {stc -= nx; dy += 1.0;}
+      if (dy > 1.0) {stc += size_x; dy -= 1.0;}
+      if (dy < -1.0) {stc -= size_x; dy += 1.0;}
     }
 
     //      ROS_INFO("[Path] Pot: %0.1f  grad: %0.1f,%0.1f  pos: %0.1f,%0.1f\n",
@@ -931,7 +931,7 @@ NavFn::gradCell(int n)
     return 1.0;
   }
 
-  if (n < nx || n > ns - nx) {  // would be out of bounds
+  if (n < size_x || n > size_grid - size_x) {  // would be out of bounds
     return 0.0;
   }
 
@@ -946,9 +946,9 @@ NavFn::gradCell(int n)
     } else if (potarr[n + 1] < POT_HIGH) {
       dx = COST_OBS;
     }
-    if (potarr[n - nx] < POT_HIGH) {
+    if (potarr[n - size_x] < POT_HIGH) {
       dy = -COST_OBS;
-    } else if (potarr[n + nx] < POT_HIGH) {
+    } else if (potarr[n + size_x] < POT_HIGH) {
       dy = COST_OBS;
     }
   } else {  // not in an obstacle
@@ -961,11 +961,11 @@ NavFn::gradCell(int n)
     }
 
     // dy calc, average to sides
-    if (potarr[n - nx] < POT_HIGH) {
-      dy += potarr[n - nx] - cv;
+    if (potarr[n - size_x] < POT_HIGH) {
+      dy += potarr[n - size_x] - cv;
     }
-    if (potarr[n + nx] < POT_HIGH) {
-      dy += cv - potarr[n + nx];
+    if (potarr[n + size_x] < POT_HIGH) {
+      dy += cv - potarr[n + size_x];
     }
   }
 

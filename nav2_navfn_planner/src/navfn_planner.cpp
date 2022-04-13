@@ -144,8 +144,8 @@ nav_msgs::msg::Path NavfnPlanner::createPlan(
 bool NavfnPlanner::isPlannerOutOfDate()
 {
   if (
-    !planner_.get() || planner_->nx != static_cast<int>(costmap_->getSizeInCellsX()) ||
-    planner_->ny != static_cast<int>(costmap_->getSizeInCellsY()))
+    !planner_.get() || planner_->size_x != static_cast<int>(costmap_->getSizeInCellsX()) ||
+    planner_->size_y != static_cast<int>(costmap_->getSizeInCellsY()))
   {
     return true;
   }
@@ -164,15 +164,15 @@ bool NavfnPlanner::makePlan(
 
   // TODO(orduno): add checks for start and goal reference frame -- should be in global frame
 
-  double wx = start.position.x;
-  double wy = start.position.y;
+  double world_x = start.position.x;
+  double world_y = start.position.y;
 
   RCLCPP_DEBUG(
     node_->get_logger(), "Making plan from (%.2f,%.2f) to (%.2f,%.2f)", start.position.x,
     start.position.y, goal.position.x, goal.position.y);
 
-  unsigned int mx, my;
-  if (!worldToMap(wx, wy, mx, my)) {
+  unsigned int map_x, map_y;
+  if (!worldToMap(world_x, world_y, map_x, map_y)) {
     RCLCPP_WARN(
       node_->get_logger(),
       "Cannot create a plan: the robot's start position is off the global"
@@ -182,7 +182,7 @@ bool NavfnPlanner::makePlan(
   }
 
   // clear the starting cell within the costmap because we know it can't be an obstacle
-  clearRobotCell(mx, my);
+  clearRobotCell(map_x, map_y);
 
   bool is_updated = false;
   //= costmap_ros_->isUpdated();
@@ -192,6 +192,7 @@ bool NavfnPlanner::makePlan(
   //    rclcpp::sleep_for(std::chrono::milliseconds(1000));
   //  }
 
+  // check if the costmap is ready
   for (int ix = 0; ix < 10; ix++) {
     is_updated = costmap_ros_->isUpdated();
     if (is_updated) {
@@ -225,13 +226,13 @@ bool NavfnPlanner::makePlan(
   lock.unlock();
 
   int map_start[2];
-  map_start[0] = mx;
-  map_start[1] = my;
+  map_start[0] = map_x;
+  map_start[1] = map_y;
 
-  wx = goal.position.x;
-  wy = goal.position.y;
+  world_x = goal.position.x;
+  world_y = goal.position.y;
 
-  if (!worldToMap(wx, wy, mx, my)) {
+  if (!worldToMap(world_x, world_y, map_x, map_y)) {
     RCLCPP_WARN(
       node_->get_logger(),
       "The goal sent to the planner is off the global costmap."
@@ -240,8 +241,8 @@ bool NavfnPlanner::makePlan(
   }
 
   int map_goal[2];
-  map_goal[0] = mx;
-  map_goal[1] = my;
+  map_goal[0] = map_x;
+  map_goal[1] = map_y;
 
   // TODO(orduno): Explain why we are providing 'map_goal' to setStart().
   //               Same for setGoal, seems reversed. Computing backwards?
@@ -396,7 +397,7 @@ double NavfnPlanner::getPointPotential(const geometry_msgs::msg::Point & world_p
     return std::numeric_limits<double>::max();
   }
 
-  unsigned int index = my * planner_->nx + mx;
+  unsigned int index = my * planner_->size_x + mx;
   return planner_->potarr[index];
 }
 
