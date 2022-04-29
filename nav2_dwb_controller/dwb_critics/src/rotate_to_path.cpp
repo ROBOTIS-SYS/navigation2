@@ -103,12 +103,15 @@ bool RotateToPathCritic::prepare(
   if (diff_x == 0.0 && diff_y == 0.0) {
     in_window_ = false;
     rotating_ = false;
+    goal_yaw_ = 0.0;
     return true;
   }
 
   if (fabs(diff_theta) < theta_tolerance_) {
     in_window_ = false;
     rotating_ = false;
+    goal_yaw_ = 0.0;
+    return true;
   } else {
     in_window_ = true;
   }
