@@ -65,6 +65,21 @@ inline std::chrono::milliseconds convertFromString<std::chrono::milliseconds>(co
   return std::chrono::milliseconds(std::stoul(key.data()));
 }
 
+
+template<>
+inline bool convertFromString(const StringView key)
+{
+  // three real numbers separated by semicolons
+  if (key == "True" || key == "true" || key == "TRUE") {
+    return true;
+  }
+  if (key == "False" || key == "false" || key == "FALSE") {
+    return false;
+  }
+
+  throw std::runtime_error("invalid key");
+}
+
 }  // namespace BT
 
 #endif  // NAV2_BEHAVIOR_TREE__BT_CONVERSIONS_HPP_
