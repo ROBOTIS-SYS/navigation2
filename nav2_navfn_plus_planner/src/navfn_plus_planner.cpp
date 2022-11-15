@@ -285,6 +285,7 @@ bool NavfnPlanner::makePlan(
     // reachable point within its tolerance_x/y region
     // double best_sdist = std::numeric_limits<double>::max();
     found_legal = searchPoiArea(goal, best_pose, tolerance_x, tolerance_y);
+    // Todo(Han) : 로그 추가
   }
 
   if (found_legal) {
@@ -326,9 +327,9 @@ bool NavfnPlanner::searchPoiArea(
   bool found_legal = false;
 
   point.x() = center_point.x() - tolerance_x;
-  while(point.x() <= (center_point.x() + tolerance_x)) {
+  while (point.x() <= (center_point.x() + tolerance_x)) {
     point.y() = center_point.y() - tolerance_y;
-    while(point.y() <= (center_point.y() + tolerance_y)) {
+    while (point.y() <= (center_point.y() + tolerance_y)) {
       auto map_frame_point = transformPointToMapcurrent(point, goal_poi, rotation_matrix);
       potential = getPointPotential(map_frame_point.position);
       double sdist = squared_distance(map_frame_point, goal);
