@@ -41,7 +41,7 @@
 // Path calc has sanity check that it succeeded
 //
 
-#include "nav2_navfn_fs_planner/navfn.hpp"
+#include "nav2_navfn_fs_planner/navfn_fs.hpp"
 
 #include <algorithm>
 #include "rclcpp/rclcpp.hpp"

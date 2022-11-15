@@ -36,8 +36,8 @@
 // Modified for Euclidean-distance computation
 //
 
-#ifndef NAV2_NAVFN_PLANNER__NAVFN_HPP_
-#define NAV2_NAVFN_PLANNER__NAVFN_HPP_
+#ifndef NAV2_NAVFN_PLANNER__NAVFN_FS_HPP_
+#define NAV2_NAVFN_PLANNER__NAVFN_FS_HPP_
 
 #include <math.h>
 #include <stdint.h>
@@ -279,4 +279,4 @@ public:
 
 }  // namespace nav2_navfn_fs_planner
 
-#endif  // NAV2_NAVFN_PLANNER__NAVFN_HPP_
+#endif  // NAV2_NAVFN_PLANNER__NAVFN_FS_HPP_

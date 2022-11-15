@@ -14,8 +14,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef NAV2_NAVFN_FS_PLANNER__NAVFN_PLANNER_HPP_
-#define NAV2_NAVFN_FS_PLANNER__NAVFN_PLANNER_HPP_
+#ifndef NAV2_NAVFN_FS_PLANNER__NAVFN_PLANNER_FS_HPP_
+#define NAV2_NAVFN_FS_PLANNER__NAVFN_PLANNER_FS_HPP_
 
 #include <chrono>
 #include <string>
@@ -28,7 +28,7 @@
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "nav2_core/global_planner.hpp"
 #include "nav_msgs/msg/path.hpp"
-#include "nav2_navfn_fs_planner/navfn.hpp"
+#include "nav2_navfn_fs_planner/navfn_fs.hpp"
 #include "nav2_util/robot_utils.hpp"
 #include "nav2_util/lifecycle_node.hpp"
 #include "nav2_costmap_2d/costmap_2d_ros.hpp"
@@ -206,20 +206,13 @@ protected:
   /**
    * @brief transfrom point from poi search area frame to map_current
    * @param point point on poi_search frame
-   * @param radian radian value
+   * @param goal_poi poi value of goal
+   * @param rotation_matrix rotation matrix to map_current
    */
   geometry_msgs::msg::Pose transformPointToMapcurrent(
     const Eigen::Vector3d & point,
     const Eigen::Vector3d & goal_poi,
     const Eigen::Matrix3d & rotation_matrix);
-
-
-  /**
-   * @brief Rotate the point according to the angle of the elevator
-   * @param point position of goal for rotatation
-   */
-  geometry_msgs::msg::Pose rotatePoint(const geometry_msgs::msg::Pose & point);
-
 
   // Planner based on ROS1 NavFn algorithm
   std::unique_ptr<NavFn> planner_;
@@ -242,7 +235,6 @@ protected:
 
   // If the goal is obstructed, the tolerance specifies how many meters the planner
   // can relax the constraint in x and y before failing
-  double tolerance_;
   double tolerance_x_;
   double tolerance_y_;
 
@@ -264,4 +256,4 @@ protected:
 
 }  // namespace nav2_navfn_fs_planner
 
-#endif  // NAV2_NAVFN_FS_PLANNER__NAVFN_PLANNER_HPP_
+#endif  // NAV2_NAVFN_FS_PLANNER__NAVFN_PLANNER_FS_HPP_

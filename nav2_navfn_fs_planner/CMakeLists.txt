@@ -44,8 +44,8 @@ set(dependencies
 )
 
 add_library(${library_name} SHARED
-  src/navfn_planner.cpp
-  src/navfn.cpp
+  src/navfn_fs_planner.cpp
+  src/navfn_fs.cpp
 )
 
 ament_target_dependencies(${library_name}

@@ -21,7 +21,7 @@
 
 // #define BENCHMARK_TESTING
 
-#include "nav2_navfn_fs_planner/navfn_planner.hpp"
+#include "nav2_navfn_fs_planner/navfn_fs_planner.hpp"
 
 #include <chrono>
 #include <cmath>
@@ -36,7 +36,7 @@
 
 #include "builtin_interfaces/msg/duration.hpp"
 #include "nav2_costmap_2d/cost_values.hpp"
-#include "nav2_navfn_fs_planner/navfn.hpp"
+#include "nav2_navfn_fs_planner/navfn_fs.hpp"
 #include "nav2_util/costmap.hpp"
 #include "nav2_util/node_utils.hpp"
 
@@ -73,8 +73,6 @@ void NavfnPlanner::configure(
   // Initialize parameters
   // Declare this plugin's parameters
   // TODO(RobotisDongun) : tolerance 값 보정해주기.
-  declare_parameter_if_not_declared(node_, name + ".tolerance", rclcpp::ParameterValue(0.5));
-  node_->get_parameter(name + ".tolerance", tolerance_);
 
   declare_parameter_if_not_declared(node_, name + ".tolerance_x", rclcpp::ParameterValue(0.12));
   node_->get_parameter(name + ".tolerance_x", tolerance_x_);
@@ -138,8 +136,8 @@ nav_msgs::msg::Path NavfnPlanner::createPlan(
     RCLCPP_WARN(
       node_->get_logger(),
       "%s: failed to create plan with "
-      "tolerance %.2f.",
-      name_.c_str(), tolerance_);
+      "tolerance_x %.2f." "tolerance_y %.2f.",
+      name_.c_str(), tolerance_x_, tolerance_y_);
   }
 
 #ifdef BENCHMARK_TESTING
@@ -284,7 +282,7 @@ bool NavfnPlanner::makePlan(
     found_legal = true;
   } else {
     // Goal is not reachable. Trying to find nearest to the goal
-    // reachable point within its tolerance region
+    // reachable point within its tolerance_x/y region
     // double best_sdist = std::numeric_limits<double>::max();
     found_legal = searchPoiArea(goal, best_pose, tolerance_x, tolerance_y);
   }
@@ -538,8 +536,10 @@ void NavfnPlanner::on_parameter_event_callback(
     const auto & value = changed_parameter.value;
 
     if (type == ParameterType::PARAMETER_DOUBLE) {
-      if (name == name_ + ".tolerance") {
-        tolerance_ = value.double_value;
+      if (name == name_ + ".tolerance_x") {
+        tolerance_x_ = value.double_value;
+      } else if (name == name_ + ".tolerance_y") {
+        tolerance_y_ = value.double_value;
       }
     } else if (type == ParameterType::PARAMETER_BOOL) {
       if (name == name_ + ".use_astar") {
@@ -549,30 +549,6 @@ void NavfnPlanner::on_parameter_event_callback(
       }
     }
   }
-}
-
-geometry_msgs::msg::Pose
-NavfnPlanner::rotatePoint(const geometry_msgs::msg::Pose & point)
-{
-  geometry_msgs::msg::Pose rotated_point;
-
-  double radian = degree_ * (M_PI / 180);
-
-  Eigen::Matrix3d rotation_matrix;
-  Eigen::Vector3d point_vec{point.position.x, point.position.y, 0.0};
-
-  rotation_matrix <<
-    cos(radian), -sin(radian), 0,
-    sin(radian), cos(radian), 0,
-    0, 0, 1;
-
-  auto result_vec = rotation_matrix * point_vec;
-
-  rotated_point.position.x = result_vec[0];
-  rotated_point.position.y = result_vec[1];
-  rotated_point.position.z = 0.0f;
-
-  return rotated_point;
 }
 
 }  // namespace nav2_navfn_fs_planner
