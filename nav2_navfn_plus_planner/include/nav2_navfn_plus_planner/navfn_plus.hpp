@@ -36,15 +36,15 @@
 // Modified for Euclidean-distance computation
 //
 
-#ifndef NAV2_NAVFN_PLANNER__NAVFN_FS_HPP_
-#define NAV2_NAVFN_PLANNER__NAVFN_FS_HPP_
+#ifndef NAV2_NAVFN_PLUS_PLANNER__NAVFN_PLUS_HPP_
+#define NAV2_NAVFN_PLUS_PLANNER__NAVFN_PLUS_HPP_
 
 #include <math.h>
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
 
-namespace nav2_navfn_fs_planner
+namespace nav2_navfn_plus_planner
 {
 
 // cost defs
@@ -277,6 +277,6 @@ public:
   // void savemap(const char * fname);
 };
 
-}  // namespace nav2_navfn_fs_planner
+}  // namespace nav2_navfn_plus_planner
 
-#endif  // NAV2_NAVFN_PLANNER__NAVFN_FS_HPP_
+#endif  // NAV2_NAVFN_PLUS_PLANNER__NAVFN_PLUS_HPP_

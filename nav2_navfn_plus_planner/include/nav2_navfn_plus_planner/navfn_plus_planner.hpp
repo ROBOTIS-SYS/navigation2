@@ -14,8 +14,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef NAV2_NAVFN_FS_PLANNER__NAVFN_PLANNER_FS_HPP_
-#define NAV2_NAVFN_FS_PLANNER__NAVFN_PLANNER_FS_HPP_
+#ifndef NAV2_NAVFN_PLUS_PLANNER__NAVFN_PLANNER_PLUS_HPP_
+#define NAV2_NAVFN_PLUS_PLANNER__NAVFN_PLANNER_PLUS_HPP_
 
 #include <chrono>
 #include <string>
@@ -28,12 +28,12 @@
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "nav2_core/global_planner.hpp"
 #include "nav_msgs/msg/path.hpp"
-#include "nav2_navfn_fs_planner/navfn_fs.hpp"
+#include "nav2_navfn_plus_planner/navfn_plus.hpp"
 #include "nav2_util/robot_utils.hpp"
 #include "nav2_util/lifecycle_node.hpp"
 #include "nav2_costmap_2d/costmap_2d_ros.hpp"
 
-namespace nav2_navfn_fs_planner
+namespace nav2_navfn_plus_planner
 {
 
 class NavfnPlanner : public nav2_core::GlobalPlanner
@@ -254,6 +254,6 @@ protected:
   void on_parameter_event_callback(const rcl_interfaces::msg::ParameterEvent::SharedPtr event);
 };
 
-}  // namespace nav2_navfn_fs_planner
+}  // namespace nav2_navfn_plus_planner
 
-#endif  // NAV2_NAVFN_FS_PLANNER__NAVFN_PLANNER_FS_HPP_
+#endif  // NAV2_NAVFN_PLUS_PLANNER__NAVFN_PLANNER_PLUS_HPP_

@@ -41,12 +41,12 @@
 // Path calc has sanity check that it succeeded
 //
 
-#include "nav2_navfn_fs_planner/navfn_fs.hpp"
+#include "nav2_navfn_plus_planner/navfn_plus.hpp"
 
 #include <algorithm>
 #include "rclcpp/rclcpp.hpp"
 
-namespace nav2_navfn_fs_planner
+namespace nav2_navfn_plus_planner
 {
 
 //
@@ -1029,4 +1029,4 @@ NavFn::gradCell(int n)
 //   fclose(fp);
 // }
 
-}  // namespace nav2_navfn_fs_planner
+}  // namespace nav2_nplusfn_fs_planner

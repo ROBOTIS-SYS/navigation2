@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(nav2_navfn_fs_planner)
+project(nav2_navfn_plus_planner)
 
 find_package(ament_cmake REQUIRED)
 find_package(nav2_common REQUIRED)
@@ -24,7 +24,7 @@ include_directories(
   include
 )
 
-set(library_name nav2_navfn_fs_planner)
+set(library_name nav2_navfn_plus_planner)
 
 set(dependencies
   rclcpp
@@ -44,8 +44,8 @@ set(dependencies
 )
 
 add_library(${library_name} SHARED
-  src/navfn_fs_planner.cpp
-  src/navfn_fs.cpp
+  src/navfn_plus_planner.cpp
+  src/navfn_plus.cpp
 )
 
 ament_target_dependencies(${library_name}
