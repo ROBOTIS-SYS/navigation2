@@ -72,8 +72,6 @@ void NavfnPlanner::configure(
 
   // Initialize parameters
   // Declare this plugin's parameters
-  // TODO(RobotisDongun) : tolerance 값 보정해주기.
-
   declare_parameter_if_not_declared(node_, name + ".tolerance_x", rclcpp::ParameterValue(0.12));
   node_->get_parameter(name + ".tolerance_x", tolerance_x_);
 
@@ -289,6 +287,9 @@ bool NavfnPlanner::makePlan(
   }
 
   if (found_legal) {
+    RCLCPP_INFO_STREAM(node_->get_logger(),
+      "Goal value is updated (" << goal.position.x << " , " << goal.position.y <<
+      ") to (" << best_pose.position.x << " , " << best_pose.position.y << ")");
     // extract the plan
     if (getPlanFromPotential(best_pose, plan)) {
       smoothApproachToGoal(best_pose, plan);
