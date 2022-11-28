@@ -157,9 +157,9 @@ KinematicsHandler::on_parameter_event_callback(
         kinematics.min_speed_xy_sq_ = kinematics.min_speed_xy_ * kinematics.min_speed_xy_;
       } else if (name == plugin_name_ + ".max_speed_xy") {
         kinematics.max_speed_xy_ = value.double_value;
+        kinematics.max_speed_xy_sq_ = kinematics.max_speed_xy_ * kinematics.max_speed_xy_;
       } else if (name == plugin_name_ + ".min_speed_theta") {
         kinematics.min_speed_theta_ = value.double_value;
-        kinematics.max_speed_xy_sq_ = kinematics.max_speed_xy_ * kinematics.max_speed_xy_;
       } else if (name == plugin_name_ + ".acc_lim_x") {
         kinematics.acc_lim_x_ = value.double_value;
       } else if (name == plugin_name_ + ".acc_lim_y") {
