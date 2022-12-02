@@ -64,6 +64,8 @@ namespace nav2_costmap_2d
 class ObstacleLayer : public CostmapLayer
 {
 public:
+
+  std::string temp_name_;
   ObstacleLayer()
   {
     costmap_ = NULL;  // this is the unsigned char* member of parent class Costmap2D.

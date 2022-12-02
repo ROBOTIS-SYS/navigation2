@@ -108,6 +108,8 @@ void ObstacleLayer::onInitialize()
 
   // now we need to split the topics based on whitespace which we can use a stringstream for
   std::stringstream ss(topics_string);
+  // temp_name_ = topics_string;
+  ss >> temp_name_;
 
   std::string source;
   while (ss >> source) {
@@ -328,6 +330,7 @@ ObstacleLayer::pointCloud2Callback(
   const std::shared_ptr<ObservationBuffer> & buffer)
 {
   // buffer the point cloud
+  RCLCPP_INFO_STREAM(node_->get_logger(), "%s Callback " << temp_name_ << " !!!!!");
   buffer->lock();
   buffer->bufferCloud(*message);
   buffer->unlock();
