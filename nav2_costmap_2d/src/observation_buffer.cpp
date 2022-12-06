@@ -118,6 +118,7 @@ bool ObservationBuffer::setGlobalFrame(const std::string new_global_frame)
 
 void ObservationBuffer::bufferCloud(const sensor_msgs::msg::PointCloud2 & cloud)
 {
+  // TODO(RobotisDongun) : 포인트 클라우드 frame 변경하는 곳
   geometry_msgs::msg::PointStamped global_origin;
 
   // create a new observation on the list to be populated

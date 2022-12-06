@@ -83,6 +83,7 @@ void ObstacleLayer::onInitialize()
   declareParameter("combination_method", rclcpp::ParameterValue(1));
   declareParameter("observation_sources", rclcpp::ParameterValue(std::string("")));
 
+  // name : obstacle_layer, voxel_layer 같은 것
   node_->get_parameter(name_ + "." + "enabled", enabled_);
   node_->get_parameter(name_ + "." + "footprint_clearing_enabled", footprint_clearing_enabled_);
   node_->get_parameter(name_ + "." + "max_obstacle_height", max_obstacle_height_);
@@ -118,6 +119,8 @@ void ObstacleLayer::onInitialize()
     std::string topic, sensor_frame, data_type;
     bool inf_is_valid, clearing, marking;
 
+    // source : observation_sources name
+    // ex) scan, pointcloud
     declareParameter(source + "." + "topic", rclcpp::ParameterValue(source));
     declareParameter(source + "." + "sensor_frame", rclcpp::ParameterValue(std::string("")));
     declareParameter(source + "." + "observation_persistence", rclcpp::ParameterValue(0.0));
