@@ -24,6 +24,8 @@ find_package(tf2_sensor_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
 find_package(angles REQUIRED)
 find_package(rcl_interfaces REQUIRED)
+find_package(PCL REQUIRED)
+find_package(pcl_conversions REQUIRED)
 
 remove_definitions(-DDISABLE_LIBUSB-1.0)
 find_package(Eigen3 REQUIRED)
@@ -34,6 +36,14 @@ include_directories(
   include
   ${EIGEN3_INCLUDE_DIRS}
 )
+
+include_directories(
+  $(PCL_INCLUDE_DIRS)
+  include
+)
+
+set(LINK_LIBRARIES
+${PCL_LIBRARIES})
 
 add_definitions(${EIGEN3_DEFINITIONS})
 
@@ -95,6 +105,7 @@ ament_target_dependencies(layers
 )
 target_link_libraries(layers
   nav2_costmap_2d_core
+  ${LINK_LIBRARIES}
 )
 
 add_library(nav2_costmap_2d_client SHARED
