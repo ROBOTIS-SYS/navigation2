@@ -71,6 +71,9 @@ void VoxelLayer::onInitialize()
   declareParameter("mark_threshold", rclcpp::ParameterValue(0));
   declareParameter("combination_method", rclcpp::ParameterValue(1));
   declareParameter("publish_voxel_map", rclcpp::ParameterValue(false));
+  declareParameter("outlier_enable", rclcpp::ParameterValue(false));
+  declareParameter("remove_points", rclcpp::ParameterValue(30));
+  declareParameter("point_thresh", rclcpp::ParameterValue(1.0));
 
   node_->get_parameter(name_ + "." + "enabled", enabled_);
   node_->get_parameter(name_ + "." + "footprint_clearing_enabled", footprint_clearing_enabled_);
@@ -82,6 +85,13 @@ void VoxelLayer::onInitialize()
   node_->get_parameter(name_ + "." + "mark_threshold", mark_threshold_);
   node_->get_parameter(name_ + "." + "combination_method", combination_method_);
   node_->get_parameter(name_ + "." + "publish_voxel_map", publish_voxel_);
+  node_->get_parameter(name_ + "." + "outlier_enable", outlier_enable_);
+  node_->get_parameter(name_ + "." + "remove_points", remove_points_);
+  node_->get_parameter(name_ + "." + "point_thresh", point_thresh_);
+
+  RCLCPP_INFO_STREAM(
+    node_->get_logger(),
+     "outlier : " << outlier_enable_ << ", remove_points : " << remove_points_ << ", point_thresh : " << point_thresh_ <<" ." );
 
   auto custom_qos = rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable();
 

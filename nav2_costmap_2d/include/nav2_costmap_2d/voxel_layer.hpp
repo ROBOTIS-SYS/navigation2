@@ -81,6 +81,9 @@ public:
   virtual void matchSize();
   virtual void reset();
 
+  bool outlier_enable_;
+  int remove_points_;
+  float point_thresh_;
 protected:
   virtual void resetMaps();
 
