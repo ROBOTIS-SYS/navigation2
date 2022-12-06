@@ -357,6 +357,7 @@ ObstacleLayer::updateBounds(
 
   // update the global current status
   current_ = current;
+  
 
   // raytrace freespace
   for (unsigned int i = 0; i < clearing_observations.size(); ++i) {

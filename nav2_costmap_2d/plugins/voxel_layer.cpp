@@ -160,6 +160,11 @@ void VoxelLayer::updateBounds(
   // update the global current status
   current_ = current;
 
+  if(outlier_enable_ == true) {
+    removeOutlier(observations, remove_points_, point_thresh_);
+    removeOutlier(clearing_observations, remove_points_, point_thresh_);
+  }
+
   // raytrace freespace
   for (unsigned int i = 0; i < clearing_observations.size(); ++i) {
     raytraceFreespace(clearing_observations[i], min_x, min_y, max_x, max_y);

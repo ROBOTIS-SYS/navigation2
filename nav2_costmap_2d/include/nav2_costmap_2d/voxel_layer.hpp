@@ -52,6 +52,9 @@
 #include <nav2_costmap_2d/obstacle_layer.hpp>
 #include <nav2_voxel_grid/voxel_grid.hpp>
 
+#include "pcl_conversions/pcl_conversions.h"
+#include "pcl/filters/statistical_outlier_removal.h"
+
 namespace nav2_costmap_2d
 {
 
@@ -148,6 +151,37 @@ private:
     wx = origin_x_ + (mx + 0.5) * resolution_;
     wy = origin_y_ + (my + 0.5) * resolution_;
     wz = origin_z_ + (mz + 0.5) * z_resolution_;
+  }
+
+  inline void removeOutlier(
+    std::vector<Observation> & observations,
+    int remove_point,
+    float point_thresh)
+  {
+    for (
+      std::vector<Observation>::iterator it = observations.begin(); it != observations.end(); ++it) {
+      Observation & obs = *it;
+      sensor_msgs::msg::PointCloud2 & cloud = *(obs.cloud_);
+
+      pcl::PCLPointCloud2 pcl;
+      pcl_conversions::toPCL(cloud, pcl);
+      pcl::PointCloud<pcl::PointXYZ>::Ptr temp_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+      pcl::fromPCLPointCloud2(pcl, *temp_cloud);
+
+      // outlier remove
+      pcl::StatisticalOutlierRemoval<pcl::PointXYZ> sor;
+      sor.setInputCloud(temp_cloud);
+      sor.setMeanK(remove_point);
+      sor.setStddevMulThresh(point_thresh);
+      sor.filter(*temp_cloud);
+
+      pcl::PCLPointCloud2 pcl_point;
+      sensor_msgs::msg::PointCloud2 remove_outlier_pointcloud;
+      pcl::toPCLPointCloud2(*temp_cloud, pcl_point);
+      pcl_conversions::fromPCL(pcl_point, remove_outlier_pointcloud);
+
+      *(obs.cloud_) = remove_outlier_pointcloud;
+    }
   }
 
   inline double dist(double x0, double y0, double z0, double x1, double y1, double z1)
