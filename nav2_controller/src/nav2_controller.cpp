@@ -455,6 +455,7 @@ void ControllerServer::publishGradientZeroVelocity()
     };
 
   stop_thread_ = std::thread(publishVel);
+  stop_thread_.detach();
 }
 
 bool ControllerServer::isGoalReached()
