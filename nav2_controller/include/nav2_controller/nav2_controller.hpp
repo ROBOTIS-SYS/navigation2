@@ -152,6 +152,7 @@ protected:
    * @brief Calls velocity publisher to publish zero velocity
    */
   void publishZeroVelocity();
+  void publishGradientZeroVelocity();
   /**
    * @brief Checks if goal is reached
    * @return true or false
@@ -229,6 +230,8 @@ protected:
 
   // Whether we've published the single controller warning yet
   geometry_msgs::msg::Pose end_pose_;
+
+  geometry_msgs::msg::Twist last_twist_;
 };
 
 }  // namespace nav2_controller

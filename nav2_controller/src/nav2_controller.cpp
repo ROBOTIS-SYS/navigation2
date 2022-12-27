@@ -287,7 +287,8 @@ void ControllerServer::computeControl()
       if (action_server_->is_cancel_requested()) {
         RCLCPP_INFO(get_logger(), "Goal was canceled. Stopping the robot.");
         action_server_->terminate_all();
-        publishZeroVelocity();
+        // publishZeroVelocity();
+        publishGradientZeroVelocity();
         return;
       }
 
@@ -395,6 +396,7 @@ void ControllerServer::updateGlobalPath()
 void ControllerServer::publishVelocity(const geometry_msgs::msg::TwistStamped & velocity)
 {
   auto cmd_vel = std::make_unique<geometry_msgs::msg::Twist>(velocity.twist);
+  last_twist_ = velocity.twist;
   if (
     vel_publisher_->is_activated() &&
     this->count_subscribers(vel_publisher_->get_topic_name()) > 0)
@@ -415,6 +417,33 @@ void ControllerServer::publishZeroVelocity()
   velocity.header.frame_id = costmap_ros_->getBaseFrameID();
   velocity.header.stamp = now();
   publishVelocity(velocity);
+  last_twist_ = geometry_msgs::msg::Twist();
+}
+
+void ControllerServer::publishGradientZeroVelocity()
+{
+  auto publishVel = [this]() {
+      int stop_steps_ = static_cast<int>(controller_frequency_ * 0.5);
+      rclcpp::WallRate loop_rate(controller_frequency_);
+
+      for (int ix = 0; ix < stop_steps_; ix++) {
+        geometry_msgs::msg::TwistStamped velocity;
+        velocity.twist.angular.x = last_twist_.angular.x * (stop_steps_ - ix) / stop_steps_;
+        velocity.twist.angular.y = last_twist_.angular.y * (stop_steps_ - ix) / stop_steps_;
+        velocity.twist.angular.z = last_twist_.angular.z * (stop_steps_ - ix) / stop_steps_;
+        velocity.twist.linear.x = last_twist_.linear.x * (stop_steps_ - ix) / stop_steps_;
+        velocity.twist.linear.y = last_twist_.linear.y * (stop_steps_ - ix) / stop_steps_;
+        velocity.twist.linear.z = last_twist_.linear.z * (stop_steps_ - ix) / stop_steps_;
+        velocity.header.frame_id = costmap_ros_->getBaseFrameID();
+        velocity.header.stamp = now();
+        publishVelocity(velocity);
+        loop_rate.sleep();
+      }
+      last_twist_ = geometry_msgs::msg::Twist();
+      return;
+    };
+
+  auto pub_thread_ = std::thread(publishVel);
 }
 
 bool ControllerServer::isGoalReached()
