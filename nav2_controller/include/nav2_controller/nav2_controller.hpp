@@ -232,6 +232,7 @@ protected:
   geometry_msgs::msg::Pose end_pose_;
 
   geometry_msgs::msg::Twist last_twist_;
+  std::thread stop_thread_;
 };
 
 }  // namespace nav2_controller
