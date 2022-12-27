@@ -427,15 +427,15 @@ void ControllerServer::publishGradientZeroVelocity()
       int stop_steps_ = static_cast<int>(controller_frequency_ * 0.5);
       rclcpp::WallRate loop_rate(controller_frequency_);
 
+      geometry_msgs::msg::TwistStamped velocity;
+      velocity.header.frame_id = costmap_ros_->getBaseFrameID();
       for (int ix = 0; ix < stop_steps_; ix++) {
-        geometry_msgs::msg::TwistStamped velocity;
         velocity.twist.angular.x = last_twist_.angular.x * (stop_steps_ - ix) / stop_steps_;
         velocity.twist.angular.y = last_twist_.angular.y * (stop_steps_ - ix) / stop_steps_;
         velocity.twist.angular.z = last_twist_.angular.z * (stop_steps_ - ix) / stop_steps_;
         velocity.twist.linear.x = last_twist_.linear.x * (stop_steps_ - ix) / stop_steps_;
         velocity.twist.linear.y = last_twist_.linear.y * (stop_steps_ - ix) / stop_steps_;
         velocity.twist.linear.z = last_twist_.linear.z * (stop_steps_ - ix) / stop_steps_;
-        velocity.header.frame_id = costmap_ros_->getBaseFrameID();
         velocity.header.stamp = now();
         publishVelocity(velocity);
         std::cout << "GradientZero[" << ix << "] - linear.x : " << velocity.twist.linear.x <<
