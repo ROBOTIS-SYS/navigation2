@@ -30,7 +30,8 @@ GoalReachedCondition::GoalReachedCondition(
 : BT::ConditionNode(condition_name, conf),
   initialized_(false),
   global_frame_("map"),
-  robot_base_frame_("base_link")
+  robot_base_frame_("base_link"),
+  transform_tolerance_(0.5)
 {
   getInput("global_frame", global_frame_);
   getInput("robot_base_frame", robot_base_frame_);
@@ -90,6 +91,14 @@ bool GoalReachedCondition::isGoalReached()
   getInput("goal", goal);
   double dx = goal.pose.position.x - current_pose.pose.position.x;
   double dy = goal.pose.position.y - current_pose.pose.position.y;
+
+  RCLCPP_WARN_STREAM(
+    node_->get_logger(), "Goal : " << goal.pose.position.x << ", " << goal.pose.position.y);
+  RCLCPP_WARN_STREAM(
+    node_->get_logger(),
+    "Current : " << current_pose.pose.position.x << ", " << current_pose.pose.position.y);
+  RCLCPP_WARN_STREAM(node_->get_logger(), "Diff : " << dx << ", " << dy);
+
 
   return (dx * dx + dy * dy) <= (goal_reached_tol_ * goal_reached_tol_);
 }
