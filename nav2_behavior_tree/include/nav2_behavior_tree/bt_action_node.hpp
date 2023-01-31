@@ -189,6 +189,10 @@ public:
 //            return BT::NodeStatus::FAILURE;
 //          }
 
+          RCLCPP_INFO_STREAM(
+            node_->get_logger(),
+            "[" << name() << "] Waiting action result : " << status());
+
           // Yield this Action, returning RUNNING
           return BT::NodeStatus::RUNNING;
         }
