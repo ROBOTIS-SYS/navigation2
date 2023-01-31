@@ -91,13 +91,14 @@ bool GoalReachedCondition::isGoalReached()
   getInput("goal", goal);
   double dx = goal.pose.position.x - current_pose.pose.position.x;
   double dy = goal.pose.position.y - current_pose.pose.position.y;
+  double diff = sqrt(dx * dx + dy * dy);
 
   RCLCPP_WARN_STREAM(
     node_->get_logger(), "Goal : " << goal.pose.position.x << ", " << goal.pose.position.y);
   RCLCPP_WARN_STREAM(
     node_->get_logger(),
     "Current : " << current_pose.pose.position.x << ", " << current_pose.pose.position.y);
-  RCLCPP_WARN_STREAM(node_->get_logger(), "Diff : " << dx << ", " << dy);
+  RCLCPP_WARN_STREAM(node_->get_logger(), "Diff : " << dx << ", " << dy << " -> " << diff);
 
 
   return (dx * dx + dy * dy) <= (goal_reached_tol_ * goal_reached_tol_);
