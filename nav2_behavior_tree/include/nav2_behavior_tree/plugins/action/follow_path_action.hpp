@@ -35,6 +35,10 @@ public:
 
   void on_wait_for_result() override;
 
+  void feedback_callback(
+    const typename rclcpp_action::ClientGoalHandle<nav2_msgs::action::FollowPath>::SharedPtr,
+    const std::shared_ptr<const typename nav2_msgs::action::FollowPath::Feedback> feedback) override;
+
   static BT::PortsList providedPorts()
   {
     return providedBasicPorts(

@@ -50,6 +50,15 @@ void FollowPathAction::on_wait_for_result()
   }
 }
 
+void FollowPathAction::feedback_callback(
+  const typename rclcpp_action::ClientGoalHandle<nav2_msgs::action::FollowPath>::SharedPtr,
+  const std::shared_ptr<const typename nav2_msgs::action::FollowPath::Feedback> feedback)
+{
+  RCLCPP_INFO_STREAM(
+    node_->get_logger(),
+    "[" << name() << "] Remained distance : " << feedback->distance_to_goal);
+}
+
 }  // namespace nav2_behavior_tree
 
 #include "behaviortree_cpp_v3/bt_factory.h"

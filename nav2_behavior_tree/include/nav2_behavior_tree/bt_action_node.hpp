@@ -106,6 +106,13 @@ public:
     return providedBasicPorts({});
   }
 
+  virtual void feedback_callback(
+    const typename rclcpp_action::ClientGoalHandle<ActionT>::SharedPtr,
+    const std::shared_ptr<const typename ActionT::Feedback> feedback)
+  {
+    (void) feedback;
+  }
+
   // Derived classes can override any of the following methods to hook into the
   // processing for the action: on_tick, on_wait_for_result, and on_success
 
@@ -289,12 +296,17 @@ protected:
         if (this->goal_handle_->get_goal_id() == result.goal_id) {
           goal_result_available_ = true;
           result_ = result;
+          RCLCPP_INFO_STREAM(
+            node_->get_logger(), "[" << name() << "] result received.");
         } else {
           RCLCPP_ERROR_STREAM(
             node_->get_logger(),
             "[" << name() << "] on new goal received(result) - wrong goal id");
         }
       };
+
+    using namespace std::placeholders;
+    send_goal_options.feedback_callback = std::bind(&BtActionNode::feedback_callback, this, _1, _2);
 
     auto future_goal_handle = action_client_->async_send_goal(goal_, send_goal_options);
 
