@@ -297,6 +297,8 @@ void ControllerServer::computeControl()
 
       computeAndPublishVelocity();
 
+      getEndPose(action_server_->get_current_goal()->path);
+
       if (isGoalReached()) {
         RCLCPP_INFO(get_logger(), "Reached the goal!");
         break;
@@ -344,6 +346,18 @@ void ControllerServer::setPlannerPath(const nav_msgs::msg::Path & path)
   RCLCPP_DEBUG(
     get_logger(), "Path end point is (%.2f, %.2f)",
     end_pose.pose.position.x, end_pose.pose.position.y);
+  end_pose_ = end_pose.pose;
+}
+
+void ControllerServer::getEndPose(const nav_msgs::msg::Path & path)
+{
+  auto end_pose = path.poses.back();
+  end_pose.header.frame_id = path.header.frame_id;
+  rclcpp::Duration tolerance(costmap_ros_->getTransformTolerance() * 1e9);
+  nav_2d_utils::transformPose(
+    costmap_ros_->getTfBuffer(), costmap_ros_->getGlobalFrameID(),
+    end_pose, end_pose, tolerance);
+
   end_pose_ = end_pose.pose;
 }
 
