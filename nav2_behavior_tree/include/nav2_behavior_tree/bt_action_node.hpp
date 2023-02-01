@@ -144,6 +144,7 @@ public:
   // The main override required by a BT action
   BT::NodeStatus tick() override
   {
+    auto start_time = node_->get_clock()->now();
     try {
 // first step to be done only at the beginning of the Action
       if (status() == BT::NodeStatus::IDLE) {
@@ -161,7 +162,7 @@ public:
         on_new_goal_received();
       }
 
-      rclcpp::Duration timeout_dur(server_timeout_ * 2);
+//      rclcpp::Duration timeout_dur(server_timeout_ * 2);
 
       // The following code corresponds to the "RUNNING" loop
       if (rclcpp::ok() && !goal_result_available_) {
@@ -189,9 +190,11 @@ public:
 //            return BT::NodeStatus::FAILURE;
 //          }
 
+          auto dur = node_->get_clock()->now() - start_time;
+
           RCLCPP_INFO_STREAM(
             node_->get_logger(),
-            "[" << name() << "] Waiting action result : " << status());
+            "[" << name() << "] Waiting action result : " << status() << " - " << dur.seconds());
 
           // Yield this Action, returning RUNNING
           return BT::NodeStatus::RUNNING;
