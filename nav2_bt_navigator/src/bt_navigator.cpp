@@ -273,8 +273,8 @@ BtNavigator::navigateToPose()
     return;
   }
 
-  for (auto & tree_node : tree_->nodes) {
-    if (auto ros_node = dynamic_cast<task_manager::RosTreeNode *>(tree_node.get())) {
+  for (auto & tree_node : tree_.nodes) {
+    if (auto ros_node = dynamic_cast<task_manager::RosTreeNode>(tree_node)) {
       ros_node->init(client_node_, blackboard_, client_node_);
     }
   }
