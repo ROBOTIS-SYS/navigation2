@@ -22,6 +22,7 @@
   <build_depend>geometry_msgs</build_depend>
   <build_depend>std_srvs</build_depend>
   <build_depend>nav2_util</build_depend>
+  <build_depend>aimbot_task_sub_module</build_depend>
 
   <exec_depend>behaviortree_cpp_v3</exec_depend>
   <exec_depend>rclcpp</exec_depend>
