@@ -106,6 +106,13 @@ public:
     return providedBasicPorts({});
   }
 
+  virtual void feedback_callback(
+    const typename rclcpp_action::ClientGoalHandle<ActionT>::SharedPtr,
+    const std::shared_ptr<const typename ActionT::Feedback> feedback)
+  {
+    (void) feedback;
+  }
+
   // Derived classes can override any of the following methods to hook into the
   // processing for the action: on_tick, on_wait_for_result, and on_success
 
@@ -144,6 +151,7 @@ public:
   // The main override required by a BT action
   BT::NodeStatus tick() override
   {
+    auto start_time = node_->get_clock()->now();
     try {
 // first step to be done only at the beginning of the Action
       if (status() == BT::NodeStatus::IDLE) {
@@ -161,7 +169,7 @@ public:
         on_new_goal_received();
       }
 
-      rclcpp::Duration timeout_dur(server_timeout_ * 2);
+//      rclcpp::Duration timeout_dur(server_timeout_ * 2);
 
       // The following code corresponds to the "RUNNING" loop
       if (rclcpp::ok() && !goal_result_available_) {
@@ -188,6 +196,12 @@ public:
 //              "[" << name() << "] TIMEOUT");
 //            return BT::NodeStatus::FAILURE;
 //          }
+
+          auto dur = node_->get_clock()->now() - start_time;
+
+          RCLCPP_INFO_STREAM(
+            node_->get_logger(),
+            "[" << name() << "] Waiting action result : " << status() << " - " << dur.seconds());
 
           // Yield this Action, returning RUNNING
           return BT::NodeStatus::RUNNING;
@@ -282,12 +296,17 @@ protected:
         if (this->goal_handle_->get_goal_id() == result.goal_id) {
           goal_result_available_ = true;
           result_ = result;
+          RCLCPP_INFO_STREAM(
+            node_->get_logger(), "[" << name() << "] result received.");
         } else {
           RCLCPP_ERROR_STREAM(
             node_->get_logger(),
             "[" << name() << "] on new goal received(result) - wrong goal id");
         }
       };
+
+    using namespace std::placeholders;
+    send_goal_options.feedback_callback = std::bind(&BtActionNode::feedback_callback, this, _1, _2);
 
     auto future_goal_handle = action_client_->async_send_goal(goal_, send_goal_options);
 

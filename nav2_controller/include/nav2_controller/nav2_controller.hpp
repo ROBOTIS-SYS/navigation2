@@ -134,6 +134,7 @@ protected:
    * @param path Path received from action server
    */
   void setPlannerPath(const nav_msgs::msg::Path & path);
+  void getEndPose(const nav_msgs::msg::Path & path);
   /**
    * @brief Calculates velocity and publishes to "cmd_vel" topic
    */
@@ -152,6 +153,7 @@ protected:
    * @brief Calls velocity publisher to publish zero velocity
    */
   void publishZeroVelocity();
+  void publishGradientZeroVelocity();
   /**
    * @brief Checks if goal is reached
    * @return true or false
@@ -229,6 +231,9 @@ protected:
 
   // Whether we've published the single controller warning yet
   geometry_msgs::msg::Pose end_pose_;
+
+  geometry_msgs::msg::Twist last_twist_;
+  std::thread stop_thread_;
 };
 
 }  // namespace nav2_controller

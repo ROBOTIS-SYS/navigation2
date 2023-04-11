@@ -273,6 +273,12 @@ BtNavigator::navigateToPose()
     return;
   }
 
+  for (auto & tree_node : tree_.nodes) {
+    if (auto ros_node = dynamic_cast<task_manager::RosTreeNode *>(tree_node.get())) {
+      ros_node->init(client_node_, blackboard_, client_node_);
+    }
+  }
+
   RosTopicLogger topic_logger(client_node_, tree_);
   std::shared_ptr<Action::Feedback> feedback_msg = std::make_shared<Action::Feedback>();
 

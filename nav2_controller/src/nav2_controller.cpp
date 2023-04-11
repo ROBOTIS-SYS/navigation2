@@ -287,13 +287,17 @@ void ControllerServer::computeControl()
       if (action_server_->is_cancel_requested()) {
         RCLCPP_INFO(get_logger(), "Goal was canceled. Stopping the robot.");
         action_server_->terminate_all();
-        publishZeroVelocity();
+        // publishZeroVelocity();
+        publishGradientZeroVelocity();
+        //  stop_thread_ = std::thread(std::bind(&ControllerServer::publishGradientZeroVelocity, this));
         return;
       }
 
       updateGlobalPath();
 
       computeAndPublishVelocity();
+
+      getEndPose(action_server_->get_current_goal()->path);
 
       if (isGoalReached()) {
         RCLCPP_INFO(get_logger(), "Reached the goal!");
@@ -342,6 +346,18 @@ void ControllerServer::setPlannerPath(const nav_msgs::msg::Path & path)
   RCLCPP_DEBUG(
     get_logger(), "Path end point is (%.2f, %.2f)",
     end_pose.pose.position.x, end_pose.pose.position.y);
+  end_pose_ = end_pose.pose;
+}
+
+void ControllerServer::getEndPose(const nav_msgs::msg::Path & path)
+{
+  auto end_pose = path.poses.back();
+  end_pose.header.frame_id = path.header.frame_id;
+  rclcpp::Duration tolerance(costmap_ros_->getTransformTolerance() * 1e9);
+  nav_2d_utils::transformPose(
+    costmap_ros_->getTfBuffer(), costmap_ros_->getGlobalFrameID(),
+    end_pose, end_pose, tolerance);
+
   end_pose_ = end_pose.pose;
 }
 
@@ -395,6 +411,7 @@ void ControllerServer::updateGlobalPath()
 void ControllerServer::publishVelocity(const geometry_msgs::msg::TwistStamped & velocity)
 {
   auto cmd_vel = std::make_unique<geometry_msgs::msg::Twist>(velocity.twist);
+  last_twist_ = velocity.twist;
   if (
     vel_publisher_->is_activated() &&
     this->count_subscribers(vel_publisher_->get_topic_name()) > 0)
@@ -415,6 +432,44 @@ void ControllerServer::publishZeroVelocity()
   velocity.header.frame_id = costmap_ros_->getBaseFrameID();
   velocity.header.stamp = now();
   publishVelocity(velocity);
+  last_twist_ = geometry_msgs::msg::Twist();
+}
+
+void ControllerServer::publishGradientZeroVelocity()
+{
+  auto publishVel = [this]() {
+      try {
+        int stop_steps_ = static_cast<int>(controller_frequency_);
+        rclcpp::WallRate loop_rate(controller_frequency_);
+
+        geometry_msgs::msg::TwistStamped velocity;
+        velocity.header.frame_id = costmap_ros_->getBaseFrameID();
+        for (int ix = 1; ix <= stop_steps_; ix++) {
+          velocity.twist.angular.x = last_twist_.angular.x * (stop_steps_ - ix) / stop_steps_;
+          velocity.twist.angular.y = last_twist_.angular.y * (stop_steps_ - ix) / stop_steps_;
+          velocity.twist.angular.z = last_twist_.angular.z * (stop_steps_ - ix) / stop_steps_;
+          velocity.twist.linear.x = last_twist_.linear.x * (stop_steps_ - ix) / stop_steps_;
+          velocity.twist.linear.y = last_twist_.linear.y * (stop_steps_ - ix) / stop_steps_;
+          velocity.twist.linear.z = last_twist_.linear.z * (stop_steps_ - ix) / stop_steps_;
+          velocity.header.stamp = now();
+          publishVelocity(velocity);
+
+          std::cout << "GradientZero[" << ix << "/" << stop_steps_ <<
+            "] - linear.x : " << velocity.twist.linear.x << std::endl;
+
+          if (ix < stop_steps_) {
+            loop_rate.sleep();
+          }
+        }
+        last_twist_ = geometry_msgs::msg::Twist();
+      } catch (std::exception & ex) {
+        std::cout << "Exception : " << ex.what() << std::endl;
+      }
+      return;
+    };
+
+  stop_thread_ = std::thread(publishVel);
+  stop_thread_.detach();
 }
 
 bool ControllerServer::isGoalReached()

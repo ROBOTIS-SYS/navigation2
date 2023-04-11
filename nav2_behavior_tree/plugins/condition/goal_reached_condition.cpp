@@ -30,7 +30,8 @@ GoalReachedCondition::GoalReachedCondition(
 : BT::ConditionNode(condition_name, conf),
   initialized_(false),
   global_frame_("map"),
-  robot_base_frame_("base_link")
+  robot_base_frame_("base_link"),
+  transform_tolerance_(0.5)
 {
   getInput("global_frame", global_frame_);
   getInput("robot_base_frame", robot_base_frame_);
@@ -56,14 +57,21 @@ BT::NodeStatus GoalReachedCondition::tick()
 void GoalReachedCondition::initialize()
 {
   node_ = config().blackboard->get<rclcpp::Node::SharedPtr>("node");
+  node_->get_parameter("transform_tolerance", transform_tolerance_);
 
-  nav2_util::declare_parameter_if_not_declared(
-    node_, "goal_reached_tol",
-    rclcpp::ParameterValue(0.25));
-  node_->get_parameter_or<double>("goal_reached_tol", goal_reached_tol_, 0.25);
+//  nav2_util::declare_parameter_if_not_declared(
+//    node_, "goal_reached_tol",
+//    rclcpp::ParameterValue(0.25));
+//  node_->get_parameter_or<double>("goal_reached_tol", goal_reached_tol_, 0.25);
   tf_ = config().blackboard->get<std::shared_ptr<tf2_ros::Buffer>>("tf_buffer");
 
-  node_->get_parameter("transform_tolerance", transform_tolerance_);
+  if (!getInput<double>("tolerance", goal_reached_tol_)) {
+    bool has_param = node_->get_parameter<double>("goal_reached_tol", goal_reached_tol_);
+
+    if (has_param == false) {
+      goal_reached_tol_ = 0.25;
+    }
+  }
 
   initialized_ = true;
 }
@@ -83,6 +91,15 @@ bool GoalReachedCondition::isGoalReached()
   getInput("goal", goal);
   double dx = goal.pose.position.x - current_pose.pose.position.x;
   double dy = goal.pose.position.y - current_pose.pose.position.y;
+  double diff = sqrt(dx * dx + dy * dy);
+
+  RCLCPP_WARN_STREAM(
+    node_->get_logger(), "Goal : " << goal.pose.position.x << ", " << goal.pose.position.y);
+  RCLCPP_WARN_STREAM(
+    node_->get_logger(),
+    "Current : " << current_pose.pose.position.x << ", " << current_pose.pose.position.y);
+  RCLCPP_WARN_STREAM(node_->get_logger(), "Diff : " << dx << ", " << dy << " -> " << diff);
+
 
   return (dx * dx + dy * dy) <= (goal_reached_tol_ * goal_reached_tol_);
 }

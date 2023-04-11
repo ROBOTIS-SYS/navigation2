@@ -19,6 +19,7 @@
 #include <string>
 #include <vector>
 
+#include "aimbot_task_sub_module/ros_node.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "nav2_behavior_tree/behavior_tree_engine.hpp"
 #include "nav2_util/lifecycle_node.hpp"
