@@ -91,7 +91,7 @@ void ObstacleLayer::onInitialize()
   node_->get_parameter("track_unknown_space", track_unknown_space);
   node_->get_parameter("transform_tolerance", transform_tolerance);
   node_->get_parameter(name_ + "." + "observation_sources", topics_string);
-  node_->get_parameter("always_clear", always_clear_);
+  node_->get_parameter(name_ + "." + "always_clear", always_clear_);
 
   RCLCPP_INFO(node_->get_logger(), "Subscribed to Topics: %s", topics_string.c_str());
 
