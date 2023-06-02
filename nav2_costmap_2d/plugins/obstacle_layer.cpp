@@ -363,20 +363,21 @@ ObstacleLayer::updateBounds(
 
   // clearing 처리
   if (always_clear_) {
+    resetMapToValue(0, 0, size_x_, size_y_, FREE_SPACE);
 //    for (unsigned int i = 0; i < clearing_observations.size(); ++i) {
-    unsigned int x0, y0, x1, y1;
-    if (worldToMap(*min_x, *min_y, x0, y0) && worldToMap(*max_x, *max_y, x1, y1) ) {
-      resetMapToValue(x0, y0, x1, y1, FREE_SPACE);
-      RCLCPP_INFO_STREAM(
-        node_->get_logger(),
-        "Clear prev costmap : " << x0 << ", " << y0 << " | " << x1 << ", " << y1 <<
-          "(" << *min_x << ", " << *min_y << " | " << *max_x << ", " << *max_y);
-    } else {
-      RCLCPP_ERROR_STREAM(
-        node_->get_logger(),
-        "Failed to clear prev costmap : " << x0 << ", " << y0 << " | " << x1 << ", " << y1 <<
-          "(" << *min_x << ", " << *min_y << " | " << *max_x << ", " << *max_y);
-    }
+//    unsigned int x0, y0, x1, y1;
+//    if (worldToMap(*min_x, *min_y, x0, y0) && worldToMap(*max_x, *max_y, x1, y1) ) {
+//      resetMapToValue(x0, y0, x1, y1, FREE_SPACE);
+//      RCLCPP_INFO_STREAM(
+//        node_->get_logger(),
+//        "Clear prev costmap : " << x0 << ", " << y0 << " | " << x1 << ", " << y1 <<
+//          "(" << *min_x << ", " << *min_y << " | " << *max_x << ", " << *max_y);
+//    } else {
+//      RCLCPP_ERROR_STREAM(
+//        node_->get_logger(),
+//        "Failed to clear prev costmap : " << x0 << ", " << y0 << " | " << x1 << ", " << y1 <<
+//          "(" << *min_x << ", " << *min_y << " | " << *max_x << ", " << *max_y);
+//    }
 //    }
   } else {
     // raytrace freespace
