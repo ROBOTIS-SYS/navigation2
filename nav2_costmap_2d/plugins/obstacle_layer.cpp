@@ -361,11 +361,16 @@ ObstacleLayer::updateBounds(
   // update the global current status
   current_ = current;
 
+  // clearing 처리
   if (always_clear_) {
 //    for (unsigned int i = 0; i < clearing_observations.size(); ++i) {
     unsigned int x0, y0, x1, y1;
     if (worldToMap(*min_x, *min_y, x0, y0) && worldToMap(*max_x, *max_y, x1, y1) ) {
       resetMapToValue(x0, y0, x1, y1, FREE_SPACE);
+      RCLCPP_INFO_STREAM(
+        node_->get_logger(),
+        "Clear prev costmap : " << x0 << ", " << y0 << " | " << x1 << ", " << y1 <<
+          "(" << *min_x << ", " << *min_y << " | " << *max_x << ", " << *max_y);
     }
 //    }
   } else {
