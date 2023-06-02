@@ -82,6 +82,7 @@ void ObstacleLayer::onInitialize()
   declareParameter("max_obstacle_height", rclcpp::ParameterValue(2.0));
   declareParameter("combination_method", rclcpp::ParameterValue(1));
   declareParameter("observation_sources", rclcpp::ParameterValue(std::string("")));
+  declareParameter("always_clear", rclcpp::ParameterValue(false));
 
   node_->get_parameter(name_ + "." + "enabled", enabled_);
   node_->get_parameter(name_ + "." + "footprint_clearing_enabled", footprint_clearing_enabled_);
@@ -90,6 +91,7 @@ void ObstacleLayer::onInitialize()
   node_->get_parameter("track_unknown_space", track_unknown_space);
   node_->get_parameter("transform_tolerance", transform_tolerance);
   node_->get_parameter(name_ + "." + "observation_sources", topics_string);
+  node_->get_parameter("always_clear", always_clear_);
 
   RCLCPP_INFO(node_->get_logger(), "Subscribed to Topics: %s", topics_string.c_str());
 
@@ -182,7 +184,8 @@ void ObstacleLayer::onInitialize()
     }
 
     // check if we'll also add this buffer to our clearing observation buffers
-    if (clearing) {
+    // always_clear가 설정되어 있는 경우 항상 clear하기 때문에 아래 작업이 필요가 없음
+    if (always_clear_ || clearing) {
       clearing_buffers_.push_back(observation_buffers_.back());
     }
 
@@ -358,9 +361,19 @@ ObstacleLayer::updateBounds(
   // update the global current status
   current_ = current;
 
-  // raytrace freespace
-  for (unsigned int i = 0; i < clearing_observations.size(); ++i) {
-    raytraceFreespace(clearing_observations[i], min_x, min_y, max_x, max_y);
+  if (always_clear_) {
+    for (unsigned int i = 0; i < clearing_observations.size(); ++i) {
+      unsigned int x0, y0, x1, y1;
+      if (worldToMap(*min_x, *min_y, x0, y0) && worldToMap(*max_x, *max_y, x1, y1) ) {
+        resetMapToValue(x0, y0, x1, y1, FREE_SPACE);
+        return;
+      }
+    }
+  } else {
+    // raytrace freespace
+    for (unsigned int i = 0; i < clearing_observations.size(); ++i) {
+      raytraceFreespace(clearing_observations[i], min_x, min_y, max_x, max_y);
+    }
   }
 
   // place the new obstacles into a priority queue... each with a priority of zero to begin with
@@ -556,30 +569,30 @@ ObstacleLayer::raytraceFreespace(
 
     // now we also need to make sure that the enpoint we're raytracing
     // to isn't off the costmap and scale if necessary
-    double a = wx - ox;
-    double b = wy - oy;
+    double dx = wx - ox;
+    double dy = wy - oy;
 
     // the minimum value to raytrace from is the origin
     if (wx < origin_x) {
-      double t = (origin_x - ox) / a;
+      double t = (origin_x - ox) / dx;
       wx = origin_x;
-      wy = oy + b * t;
+      wy = oy + dy * t;
     }
     if (wy < origin_y) {
-      double t = (origin_y - oy) / b;
-      wx = ox + a * t;
+      double t = (origin_y - oy) / dy;
+      wx = ox + dx * t;
       wy = origin_y;
     }
 
     // the maximum value to raytrace to is the end of the map
     if (wx > map_end_x) {
-      double t = (map_end_x - ox) / a;
+      double t = (map_end_x - ox) / dx;
       wx = map_end_x - .001;
-      wy = oy + b * t;
+      wy = oy + dy * t;
     }
     if (wy > map_end_y) {
-      double t = (map_end_y - oy) / b;
-      wx = ox + a * t;
+      double t = (map_end_y - oy) / dy;
+      wx = ox + dx * t;
       wy = map_end_y - .001;
     }
 
