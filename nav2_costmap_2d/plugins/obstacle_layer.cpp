@@ -371,6 +371,11 @@ ObstacleLayer::updateBounds(
         node_->get_logger(),
         "Clear prev costmap : " << x0 << ", " << y0 << " | " << x1 << ", " << y1 <<
           "(" << *min_x << ", " << *min_y << " | " << *max_x << ", " << *max_y);
+    } else {
+      RCLCPP_ERROR_STREAM(
+        node_->get_logger(),
+        "Failed to clear prev costmap : " << x0 << ", " << y0 << " | " << x1 << ", " << y1 <<
+          "(" << *min_x << ", " << *min_y << " | " << *max_x << ", " << *max_y);
     }
 //    }
   } else {
