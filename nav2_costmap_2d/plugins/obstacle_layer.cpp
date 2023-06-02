@@ -185,7 +185,7 @@ void ObstacleLayer::onInitialize()
 
     // check if we'll also add this buffer to our clearing observation buffers
     // always_clear가 설정되어 있는 경우 항상 clear하기 때문에 아래 작업이 필요가 없음
-    if (always_clear_ || clearing) {
+    if (!always_clear_ && clearing) {
       clearing_buffers_.push_back(observation_buffers_.back());
     }
 
@@ -362,13 +362,12 @@ ObstacleLayer::updateBounds(
   current_ = current;
 
   if (always_clear_) {
-    for (unsigned int i = 0; i < clearing_observations.size(); ++i) {
-      unsigned int x0, y0, x1, y1;
-      if (worldToMap(*min_x, *min_y, x0, y0) && worldToMap(*max_x, *max_y, x1, y1) ) {
-        resetMapToValue(x0, y0, x1, y1, FREE_SPACE);
-        return;
-      }
+//    for (unsigned int i = 0; i < clearing_observations.size(); ++i) {
+    unsigned int x0, y0, x1, y1;
+    if (worldToMap(*min_x, *min_y, x0, y0) && worldToMap(*max_x, *max_y, x1, y1) ) {
+      resetMapToValue(x0, y0, x1, y1, FREE_SPACE);
     }
+//    }
   } else {
     // raytrace freespace
     for (unsigned int i = 0; i < clearing_observations.size(); ++i) {
