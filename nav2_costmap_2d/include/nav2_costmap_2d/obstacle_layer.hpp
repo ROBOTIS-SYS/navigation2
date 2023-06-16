@@ -186,6 +186,7 @@ protected:
 
   bool rolling_window_;
   int combination_method_;
+  bool always_clear_;
 };
 
 }  // namespace nav2_costmap_2d
