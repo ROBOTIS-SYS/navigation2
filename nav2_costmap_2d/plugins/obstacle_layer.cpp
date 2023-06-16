@@ -82,7 +82,7 @@ void ObstacleLayer::onInitialize()
   declareParameter("max_obstacle_height", rclcpp::ParameterValue(2.0));
   declareParameter("combination_method", rclcpp::ParameterValue(1));
   declareParameter("observation_sources", rclcpp::ParameterValue(std::string("")));
-  declareParameter("always_clear", rclcpp::ParameterValue(false));
+  declareParameter("always_clear", rclcpp::ParameterValue(true));
 
   node_->get_parameter(name_ + "." + "enabled", enabled_);
   node_->get_parameter(name_ + "." + "footprint_clearing_enabled", footprint_clearing_enabled_);
