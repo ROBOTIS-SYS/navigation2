@@ -273,6 +273,11 @@ bool NavfnPlanner::makePlan(
   } else {
     // Goal is not reachable. Trying to find nearest to the goal
     // reachable point within its tolerance region
+    RCLCPP_WARN_STREAM(
+      node_->get_logger(),
+      "Goal[" << p.position.x << "," << p.position.y <<
+        "] is not reachable. Trying to find nearest point");
+
     double best_sdist = std::numeric_limits<double>::max();
 
     p.position.y = goal.position.y - tolerance;
@@ -293,6 +298,11 @@ bool NavfnPlanner::makePlan(
   }
 
   if (found_legal) {
+    RCLCPP_INFO_STREAM(
+      node_->get_logger(),
+      "Plan a path : real goal [" << best_pose.position.x << "," << best_pose.position.y <<
+        "], original goal[" << goal.position.x << "," << goal.position.y << "]");
+
     // extract the plan
     if (getPlanFromPotential(best_pose, plan)) {
       smoothApproachToGoal(best_pose, plan);
@@ -302,6 +312,8 @@ bool NavfnPlanner::makePlan(
         "Failed to create a plan from potential when a legal"
         " potential was found. This shouldn't happen.");
     }
+  } else {
+    RCLCPP_WARN_STREAM(node_->get_logger(), "All points are not reachable. Failed to plan");
   }
 
   return !plan.poses.empty();
